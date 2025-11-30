@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "bash scripts/generate-prisma.sh && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "bash scripts/generate-prisma.sh"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
