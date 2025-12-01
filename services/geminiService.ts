@@ -46,29 +46,49 @@ export const sendMessageStream = async (
     }
 
     const decoder = new TextDecoder();
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
+      if (done) {
+        console.log('Stream ended. Total response length:', fullResponse.length);
+        break;
+      }
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n').filter(line => line.trim() !== '');
+      // Decode chunk with stream: true to handle multi-byte characters properly
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+
+      // Process complete lines
+      const lines = buffer.split('\n');
+      // Keep the last incomplete line in the buffer
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
+        if (!line.trim()) continue;
+
         if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') {
+            console.log('Received [DONE] signal');
+            continue;
+          }
 
           try {
             const parsed = JSON.parse(data);
             const content = parsed.choices?.[0]?.delta?.content;
+            const finishReason = parsed.choices?.[0]?.finish_reason;
+
             if (content) {
               fullResponse += content;
               onChunk(fullResponse);
             }
+
+            if (finishReason) {
+              console.log('Stream finished with reason:', finishReason);
+            }
           } catch (e) {
-            // Skip invalid JSON
-            console.warn('Failed to parse SSE data:', e);
+            console.warn('Failed to parse SSE data:', data.substring(0, 100), e);
           }
         }
       }
