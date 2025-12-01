@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { MessageBubble } from '@/components/MessageBubble';
 import { InputArea } from '@/components/InputArea';
+import { ConversationList } from '@/components/ConversationList';
 import { sendMessageStream, initializeChat } from '@/services/geminiService';
 import { Message, Role, Language } from '@/types';
 import { SYSTEM_PROMPTS } from '@/constants';
@@ -29,6 +30,7 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [conversationListKey, setConversationListKey] = useState(0);
 
   // --- Effect: Theme Application ---
   useEffect(() => {
@@ -70,19 +72,24 @@ export default function Home() {
   }, [messages]);
 
   // Create new conversation if needed
-  const ensureConversation = async () => {
+  const ensureConversation = async (title?: string) => {
     if (currentConversationId) return currentConversationId;
 
     try {
       const res = await fetch('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ language }),
+        body: JSON.stringify({
+          language,
+          title: title || undefined
+        }),
       });
 
       if (res.ok) {
         const { conversation } = await res.json();
         setCurrentConversationId(conversation.id);
+        // Refresh conversation list
+        setConversationListKey(prev => prev + 1);
         return conversation.id;
       }
     } catch (error) {
@@ -92,8 +99,7 @@ export default function Home() {
   };
 
   // Save message to database
-  const saveMessage = async (role: string, content: string) => {
-    const conversationId = await ensureConversation();
+  const saveMessage = async (conversationId: string, role: string, content: string) => {
     if (!conversationId) return;
 
     try {
@@ -121,8 +127,19 @@ export default function Home() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Save user message to database
-    saveMessage(Role.USER, text);
+    // Create conversation with first user message as title if this is the first message
+    const isFirstMessage = !currentConversationId;
+    let conversationId = currentConversationId;
+
+    if (isFirstMessage) {
+      const title = text.length > 50 ? text.substring(0, 50) + '...' : text;
+      conversationId = await ensureConversation(title);
+    }
+
+    // Save user message to database - pass conversationId to prevent race condition
+    if (conversationId) {
+      await saveMessage(conversationId, Role.USER, text);
+    }
 
     const modelMessageId = uuidv4();
     const modelMessage: Message = {
@@ -149,8 +166,8 @@ export default function Home() {
       });
 
       // Save model response to database after streaming completes
-      if (fullResponse) {
-        saveMessage(Role.MODEL, fullResponse);
+      if (fullResponse && conversationId) {
+        saveMessage(conversationId, Role.MODEL, fullResponse);
       }
     } catch (error) {
       console.error("Failed to generate response", error);
@@ -168,7 +185,9 @@ export default function Home() {
       ]);
 
       // Save error message too
-      saveMessage(Role.MODEL, errorMsg);
+      if (conversationId) {
+        saveMessage(conversationId, Role.MODEL, errorMsg);
+      }
     } finally {
         setIsLoading(false);
         setMessages((prev) =>
@@ -191,6 +210,53 @@ export default function Home() {
     setIsDarkMode(!isDarkMode);
   };
 
+  const handleConversationSelect = async (id: string) => {
+    try {
+      const res = await fetch(`/api/conversations/${id}`);
+      if (res.ok) {
+        const { conversation } = await res.json();
+
+        // Update current conversation ID
+        setCurrentConversationId(id);
+
+        // Load messages from conversation
+        const loadedMessages: Message[] = conversation.messages.map((msg: any) => ({
+          id: msg.id,
+          role: msg.role as Role,
+          content: msg.content,
+        }));
+
+        setMessages(loadedMessages);
+
+        // Re-initialize chat with current language prompt
+        const prompt = SYSTEM_PROMPTS[language];
+        initializeChat(prompt);
+      }
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+    }
+  };
+
+  const handleNewConversation = () => {
+    // Reset conversation
+    setCurrentConversationId(null);
+
+    // Reset messages to greeting
+    const greeting = language === 'zh'
+      ? "那些疯狂到以为自己能够改变世界的人，正是那些真正改变世界的人。\n\n你准备好不再对平庸妥协了吗？\n\n以此为起点，告诉我你现在的困惑。"
+      : "The people who are crazy enough to think they can change the world are the ones who do.\n\nAre you ready to stop compromising with mediocrity?\n\nStarting from there, tell me what you are wrestling with.";
+
+    setMessages([{
+      id: uuidv4(),
+      role: Role.MODEL,
+      content: greeting
+    }]);
+
+    // Re-initialize chat
+    const prompt = SYSTEM_PROMPTS[language];
+    initializeChat(prompt);
+  };
+
   return (
     <div className={`min-h-screen flex flex-col font-sans selection:bg-white/20 ${isDarkMode ? 'bg-zinc-950 text-zinc-50' : 'bg-zinc-50 text-zinc-900'}`}>
       <Header
@@ -200,14 +266,25 @@ export default function Home() {
         onThemeToggle={handleThemeToggle}
       />
 
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 pt-24 pb-32">
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} isDarkMode={isDarkMode} />
-        ))}
-        <div ref={messagesEndRef} />
-      </main>
+      <ConversationList
+        key={conversationListKey}
+        currentConversationId={currentConversationId}
+        onConversationSelect={handleConversationSelect}
+        onNewConversation={handleNewConversation}
+        language={language}
+        isDarkMode={isDarkMode}
+      />
 
-      <InputArea onSend={handleSendMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
+      <div className="flex-1 lg:ml-64">
+        <main className="w-full max-w-5xl mx-auto px-4 pt-24 pb-32">
+          {messages.map((msg) => (
+            <MessageBubble key={msg.id} message={msg} isDarkMode={isDarkMode} />
+          ))}
+          <div ref={messagesEndRef} />
+        </main>
+
+        <InputArea onSend={handleSendMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
+      </div>
     </div>
   );
 }

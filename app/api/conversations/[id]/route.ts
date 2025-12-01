@@ -46,6 +46,53 @@ export async function GET(
   }
 }
 
+// Update conversation (e.g., rename title)
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { id } = await params;
+    const { title } = await request.json();
+
+    // Verify conversation belongs to user
+    const conversation = await prisma.conversation.findFirst({
+      where: {
+        id,
+        userId: user.id,
+      },
+    });
+
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update conversation title
+    const updatedConversation = await prisma.conversation.update({
+      where: { id },
+      data: { title },
+    });
+
+    return NextResponse.json({ conversation: updatedConversation });
+  } catch (error) {
+    console.error('Error updating conversation:', error);
+    return NextResponse.json(
+      { error: 'Failed to update conversation' },
+      { status: 500 }
+    );
+  }
+}
+
 // Delete conversation
 export async function DELETE(
   request: Request,

@@ -43,6 +43,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Ensure user exists in database (upsert)
+    await prisma.user.upsert({
+      where: { id: user.id },
+      update: {
+        email: user.email,
+        name: user.user_metadata?.name || user.email?.split('@')[0],
+      },
+      create: {
+        id: user.id,
+        email: user.email || undefined,
+        name: user.user_metadata?.name || user.email?.split('@')[0] || undefined,
+      },
+    });
+
     const { title, language } = await request.json();
 
     const conversation = await prisma.conversation.create({
