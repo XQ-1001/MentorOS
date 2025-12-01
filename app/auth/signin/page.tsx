@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import { APP_NAME } from '@/constants';
 
 export default function SignIn() {
   const router = useRouter();
+  const supabase = createClient();
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -22,44 +22,32 @@ export default function SignIn() {
 
     try {
       if (isRegister) {
-        // Register new user
-        const res = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name }),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.error || 'Registration failed');
-        }
-
-        // Auto sign in after registration
-        const signInResult = await signIn('credentials', {
+        // Register new user with Supabase Auth
+        const { error } = await supabase.auth.signUp({
           email,
           password,
-          redirect: false,
         });
 
-        if (signInResult?.error) {
-          setError(signInResult.error);
-        } else {
-          router.push('/');
+        if (error) {
+          throw error;
         }
+
+        // Supabase automatically signs in after registration
+        router.push('/');
+        router.refresh();
       } else {
-        // Sign in existing user
-        const result = await signIn('credentials', {
+        // Sign in existing user with Supabase Auth
+        const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
-          redirect: false,
         });
 
-        if (result?.error) {
-          setError(result.error);
-        } else {
-          router.push('/');
+        if (error) {
+          throw error;
         }
+
+        router.push('/');
+        router.refresh();
       }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
@@ -68,8 +56,17 @@ export default function SignIn() {
     }
   };
 
-  const handleOAuthSignIn = (provider: 'google' | 'github') => {
-    signIn(provider, { callbackUrl: '/' });
+  const handleOAuthSignIn = async (provider: 'google' | 'github') => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+    }
   };
 
   return (
@@ -94,25 +91,6 @@ export default function SignIn() {
 
         {/* Email/Password Form */}
         <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-          {isRegister && (
-            <div>
-              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
-                Name (Optional)
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={`w-full px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors ${
-                  isDarkMode
-                    ? 'bg-zinc-800 border-zinc-700 text-zinc-100'
-                    : 'bg-zinc-100 border-zinc-300 text-zinc-900'
-                }`}
-                placeholder="Steve Jobs"
-              />
-            </div>
-          )}
-
           <div>
             <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
               Email

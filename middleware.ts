@@ -1,11 +1,42 @@
-import { withAuth } from 'next-auth/middleware';
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
-export default withAuth({
-  pages: {
-    signIn: '/auth/signin',
-  },
-});
+export async function middleware(request: NextRequest) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value)
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  // Refresh session if expired
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Redirect to signin if not authenticated (except for auth pages)
+  if (!user && !request.nextUrl.pathname.startsWith('/auth')) {
+    return NextResponse.redirect(new URL('/auth/signin', request.url))
+  }
+
+  return response
+}
 
 export const config = {
-  matcher: ['/((?!auth|api/auth|_next/static|_next/image|favicon.ico).*)'],
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}
