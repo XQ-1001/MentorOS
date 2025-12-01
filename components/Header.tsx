@@ -2,21 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { APP_NAME, APP_SUBTITLE } from '@/constants';
-import { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
-  language: Language;
-  onLanguageChange: (lang: Language) => void;
   isDarkMode: boolean;
   onThemeToggle: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  language,
-  onLanguageChange,
   isDarkMode,
   onThemeToggle
 }) => {
@@ -73,18 +68,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-3 md:gap-4 z-10 ml-auto">
-            {/* Language Selector */}
-            <div className="relative group">
-                <select
-                    value={language}
-                    onChange={(e) => onLanguageChange(e.target.value as Language)}
-                    className={`appearance-none border text-xs md:text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-zinc-500 cursor-pointer transition-colors ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 text-zinc-700'}`}
-                >
-                    <option value="zh">中文</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-
             {/* Theme Toggle */}
             <button
                 onClick={onThemeToggle}

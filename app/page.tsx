@@ -9,6 +9,7 @@ import { sendMessageStream, initializeChat } from '@/services/geminiService';
 import { Message, Role, Language } from '@/types';
 import { SYSTEM_PROMPTS } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
+import { determineOutputLanguage } from '@/lib/languageDetection';
 
 export default function Home() {
   // --- State: Theme ---
@@ -42,14 +43,13 @@ export default function Home() {
     }
   }, [isDarkMode]);
 
-  // --- Effect: Initialize/Re-initialize Chat on Language Change ---
+  // --- Effect: Initialize Chat with Bilingual System Prompt ---
   useEffect(() => {
-    // Select the prompt based on current language
-    const prompt = SYSTEM_PROMPTS[language];
+    // Use the bilingual system prompt that handles both languages
+    const prompt = SYSTEM_PROMPTS[language]; // Both zh and en now use the same bilingual prompt
     initializeChat(prompt);
 
-    // If it's the very first load, or if we switched languages, we might want to reset the view.
-    // For a cleaner UX when switching language, we reset the messages to a new greeting in that language.
+    // Initial greeting in user's browser language
     const greeting = language === 'zh'
       ? "那些疯狂到以为自己能够改变世界的人，正是那些真正改变世界的人。\n\n你准备好不再对平庸妥协了吗？\n\n以此为起点，告诉我你现在的困惑。"
       : "The people who are crazy enough to think they can change the world are the ones who do.\n\nAre you ready to stop compromising with mediocrity?\n\nStarting from there, tell me what you are wrestling with.";
@@ -61,7 +61,7 @@ export default function Home() {
     }]);
 
     setHasInitialized(true);
-  }, [language]);
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -127,6 +127,18 @@ export default function Home() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Detect language from user input and conversation history
+    const conversationHistory = messages.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+    const detectedLanguage = determineOutputLanguage(text, language, conversationHistory);
+
+    // Update language preference if it changed
+    if (detectedLanguage !== language) {
+      setLanguage(detectedLanguage);
+    }
+
     // Create conversation with first user message as title if this is the first message
     const isFirstMessage = !currentConversationId;
     let conversationId = currentConversationId;
@@ -134,6 +146,19 @@ export default function Home() {
     if (isFirstMessage) {
       const title = text.length > 50 ? text.substring(0, 50) + '...' : text;
       conversationId = await ensureConversation(title);
+
+      // Update conversation language to detected language
+      if (conversationId && detectedLanguage) {
+        try {
+          await fetch(`/api/conversations/${conversationId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ language: detectedLanguage }),
+          });
+        } catch (error) {
+          console.error('Failed to update conversation language:', error);
+        }
+      }
     }
 
     // Save user message to database - pass conversationId to prevent race condition
@@ -228,8 +253,8 @@ export default function Home() {
 
         setMessages(loadedMessages);
 
-        // Re-initialize chat with current language prompt
-        const prompt = SYSTEM_PROMPTS[language];
+        // Re-initialize chat with bilingual prompt
+        const prompt = SYSTEM_PROMPTS.zh; // Use the same bilingual prompt
         initializeChat(prompt);
       }
     } catch (error) {
@@ -241,7 +266,7 @@ export default function Home() {
     // Reset conversation
     setCurrentConversationId(null);
 
-    // Reset messages to greeting
+    // Reset messages to greeting in user's preferred language
     const greeting = language === 'zh'
       ? "那些疯狂到以为自己能够改变世界的人，正是那些真正改变世界的人。\n\n你准备好不再对平庸妥协了吗？\n\n以此为起点，告诉我你现在的困惑。"
       : "The people who are crazy enough to think they can change the world are the ones who do.\n\nAre you ready to stop compromising with mediocrity?\n\nStarting from there, tell me what you are wrestling with.";
@@ -252,16 +277,14 @@ export default function Home() {
       content: greeting
     }]);
 
-    // Re-initialize chat
-    const prompt = SYSTEM_PROMPTS[language];
+    // Re-initialize chat with bilingual prompt
+    const prompt = SYSTEM_PROMPTS.zh; // Use the same bilingual prompt
     initializeChat(prompt);
   };
 
   return (
     <div className={`min-h-screen flex flex-col font-sans selection:bg-white/20 ${isDarkMode ? 'bg-zinc-950 text-zinc-50' : 'bg-zinc-50 text-zinc-900'}`}>
       <Header
-        language={language}
-        onLanguageChange={handleLanguageChange}
         isDarkMode={isDarkMode}
         onThemeToggle={handleThemeToggle}
       />

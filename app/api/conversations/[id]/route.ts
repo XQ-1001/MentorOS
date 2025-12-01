@@ -60,7 +60,7 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { title } = await request.json();
+    const { title, language } = await request.json();
 
     // Verify conversation belongs to user
     const conversation = await prisma.conversation.findFirst({
@@ -77,10 +77,14 @@ export async function PATCH(
       );
     }
 
-    // Update conversation title
+    // Update conversation title and/or language
+    const updateData: { title?: string; language?: string } = {};
+    if (title !== undefined) updateData.title = title;
+    if (language !== undefined) updateData.language = language;
+
     const updatedConversation = await prisma.conversation.update({
       where: { id },
-      data: { title },
+      data: updateData,
     });
 
     return NextResponse.json({ conversation: updatedConversation });
