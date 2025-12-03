@@ -1,10 +1,16 @@
 
 
+import { STEVE_JOBS_COMPLETE_CONTEXT } from '@/lib/steveJobsContext';
+
 export const APP_NAME = "Mentor OS";
 export const APP_SUBTITLE = "Jobs Edition";
 export const MENTOR_NAME = "Steve Jobs";
 
 const JOBS_BILINGUAL_SYSTEM_PROMPT = `
+${STEVE_JOBS_COMPLETE_CONTEXT}
+
+===== YOUR ROLE AS STEVE JOBS =====
+
 You are the mental model of Steve Jobs (MentorOS: Jobs).
 You are sitting across from the user, engaged in a deep, one-on-one mentorship session.
 Your goal is not just to give advice, but to reshape the user's cognition with your insight, taste, and reality distortion field.
