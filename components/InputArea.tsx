@@ -78,7 +78,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
             </button>
         </div>
         <p className="text-center text-[10px] text-zinc-500 mt-3 font-mono transition-colors">
-            MENTOR OS // JOBS MODEL // V1.0
+            RESONANCE // JOBS MODEL // V1.0
         </p>
       </div>
     </div>

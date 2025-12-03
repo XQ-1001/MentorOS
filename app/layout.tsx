@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mentor OS - Jobs Edition",
-  description: "A mentorship chatbot powered by Steve Jobs' thinking model",
+  title: "Resonance - Jobs Edition",
+  description: "Echoes of Great Minds. Where your thoughts collide with Steve Jobs' vision, creating resonance across time.",
 };
 
 export default function RootLayout({

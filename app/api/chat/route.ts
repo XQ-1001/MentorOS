@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
-        'X-Title': 'Mentor OS - Jobs Edition',
+        'X-Title': 'Resonance - Jobs Edition',
       },
       body: JSON.stringify({
         model: OPENROUTER_MODEL,
