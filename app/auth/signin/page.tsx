@@ -23,7 +23,7 @@ export default function SignIn() {
     try {
       if (isRegister) {
         // Register new user with Supabase Auth
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
         });
@@ -32,9 +32,23 @@ export default function SignIn() {
           throw error;
         }
 
-        // Supabase automatically signs in after registration
-        router.push('/');
-        router.refresh();
+        // Check if email confirmation is required
+        const session = data?.session;
+        const user = data?.user;
+
+        if (!session && user) {
+          // Email confirmation is enabled - user needs to check their email
+          setError('Registration successful! Please check your email to confirm your account before signing in.');
+          setIsLoading(false);
+          return;
+        } else if (session) {
+          // Email confirmation is disabled - user is automatically signed in
+          router.push('/');
+          router.refresh();
+        } else {
+          // Something unexpected happened
+          throw new Error('Registration failed. Please try again.');
+        }
       } else {
         // Sign in existing user with Supabase Auth
         const { error } = await supabase.auth.signInWithPassword({
