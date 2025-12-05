@@ -5,38 +5,46 @@ import { Role, Message } from '@/types';
 interface MessageBubbleProps {
   message: Message;
   isDarkMode?: boolean;
+  userName?: string;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode = true }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode = true, userName }) => {
   const isUser = message.role === Role.USER;
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-10 animate-fade-in`}>
-      <div
-        className={`
-          max-w-[85%] md:max-w-[75%] lg:max-w-[70%]
-          rounded-2xl px-7 py-5
-          leading-[1.75] text-base md:text-lg
-          ${isUser
-            ? isDarkMode
-              ? 'bg-[#1C1C1E] text-[#EDEDED] border border-[#2C2C2E]'
-              : 'bg-zinc-100 text-zinc-900 border border-zinc-200'
-            : isDarkMode
-              ? 'bg-transparent text-[#EDEDED] border-l-2 border-[#EDEDED] pl-7'
-              : 'bg-transparent text-zinc-900 border-l-2 border-zinc-900 pl-7'
-          }
-        `}
-      >
+    <div className="flex flex-col gap-2 mb-8 w-full">
+      {/* Name label - script style */}
+      <div className={`text-xs uppercase tracking-wider font-semibold ${
+        isUser
+          ? isDarkMode ? 'text-zinc-500' : 'text-zinc-600'
+          : isDarkMode ? 'text-[#FFBF00]' : 'text-amber-600'
+      }`}>
+        {isUser ? (userName || 'You') : 'Resonance'}
+      </div>
+
+      {/* Message content */}
+      <div className={`
+        max-w-none
+        ${isUser
+          ? isDarkMode
+            ? 'text-zinc-400 font-normal'
+            : 'text-zinc-600 font-normal'
+          : isDarkMode
+            ? 'text-[#EDEDED] font-medium'
+            : 'text-zinc-900 font-medium'
+        }
+      `}>
         {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
+          <p className="whitespace-pre-wrap leading-[1.75] text-base">{message.content}</p>
         ) : (
           <div className={`
-            prose ${isDarkMode ? 'prose-invert' : ''}
-            prose-p:my-3
+            prose prose-lg max-w-none
+            ${isDarkMode ? 'prose-invert' : ''}
+            prose-p:my-3 prose-p:leading-[1.75]
             prose-headings:font-semibold prose-headings:tracking-tight
-            ${isDarkMode ? 'prose-headings:text-white' : 'prose-headings:text-zinc-900'}
-            ${isDarkMode ? 'prose-strong:text-white' : 'prose-strong:text-zinc-900'}
-            ${isDarkMode ? 'prose-blockquote:border-l-white' : 'prose-blockquote:border-l-zinc-900'}
+            ${isDarkMode ? 'prose-headings:text-[#EDEDED]' : 'prose-headings:text-zinc-900'}
+            ${isDarkMode ? 'prose-strong:text-[#EDEDED]' : 'prose-strong:text-zinc-900'}
+            ${isDarkMode ? 'prose-blockquote:border-l-[#FFBF00]' : 'prose-blockquote:border-l-amber-600'}
             ${isDarkMode ? 'prose-blockquote:text-zinc-400' : 'prose-blockquote:text-zinc-600'}
             prose-ul:list-disc
             prose-li:marker:text-zinc-500
@@ -45,11 +53,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
               {message.content}
             </ReactMarkdown>
             {message.isStreaming && (
-              <span className="inline-block w-2 h-4 ml-1 bg-zinc-500 animate-pulse align-middle" />
+              <span className="inline-block w-2 h-4 ml-1 bg-[#FFBF00] animate-pulse align-middle" />
             )}
           </div>
         )}
       </div>
+
+      {/* Divider line */}
+      <div className={`h-px w-full mt-2 ${
+        isDarkMode ? 'bg-zinc-800' : 'bg-zinc-200'
+      }`} />
     </div>
   );
 };

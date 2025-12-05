@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { APP_NAME, APP_SUBTITLE } from '@/constants';
+import { APP_SUBTITLE } from '@/constants';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
+import { UserSettingsModal } from './UserSettingsModal';
 
 interface HeaderProps {
   isDarkMode: boolean;
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -41,33 +43,45 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-20 flex items-center justify-between px-4 md:px-8 transition-colors duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
-        {/* User Info */}
+    <>
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-20 flex items-center justify-between px-2 md:px-3 transition-all duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
+        {/* App Title - Left */}
         <div className="flex items-center gap-2">
-            {user && (
-                <>
-                    {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.name || 'User'} className="w-8 h-8 rounded-full" />
-                    ) : (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'}`}>
-                            <span className="text-sm font-medium">
-                                {user.email?.[0].toUpperCase()}
-                            </span>
-                        </div>
-                    )}
-                    <span className={`text-sm hidden md:block ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-700'}`}>
-                        {user.user_metadata?.name || user.email}
-                    </span>
-                </>
-            )}
+            {/* Dotted concentric circles icon - static */}
+            <svg
+                width="16"
+                height="16"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                {/* Outer circle - dotted */}
+                <circle cx="10" cy="10" r="8.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                {/* Middle circle - dotted */}
+                <circle cx="10" cy="10" r="5.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                {/* Inner circle - dotted */}
+                <circle cx="10" cy="10" r="2.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+                {/* Center dot - solid */}
+                <circle cx="10" cy="10" r="1" fill="#FFBF00" />
+            </svg>
+
+            {/* Brand name with gradient */}
+            <div className="flex items-center text-[16px] leading-none">
+                <span className="font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-[#FFBF00] via-[#EDEDED] to-[#999999]">
+                    Resonance
+                </span>
+                <span className={`ml-1 font-light font-serif italic ${isDarkMode ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                    Lab.
+                </span>
+            </div>
         </div>
 
-        <div className="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
-            <h1 className={`text-xl font-semibold tracking-tighter transition-colors ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'}`}>{APP_NAME}</h1>
-            <span className={`text-xs uppercase tracking-[0.2em] ${isDarkMode ? 'text-zinc-500' : 'text-zinc-500'}`}>{APP_SUBTITLE}</span>
+        {/* Subtitle - Center */}
+        <div className="absolute left-1/2 transform -translate-x-1/2">
+            <span className={`text-xs uppercase tracking-[0.2em] !leading-none !m-0 ${isDarkMode ? 'text-zinc-500' : 'text-zinc-500'}`}>{APP_SUBTITLE}</span>
         </div>
 
-        <div className="flex items-center gap-3 md:gap-4 z-10 ml-auto">
+        <div className="flex items-center gap-3 md:gap-4 z-10">
             {/* Theme Toggle */}
             <button
                 onClick={onThemeToggle}
@@ -104,7 +118,40 @@ export const Header: React.FC<HeaderProps> = ({
                     Sign Out
                 </button>
             )}
+
+            {/* User Info - Avatar and Name (Right) */}
+            {user && (
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                    aria-label="User Settings"
+                >
+                    {user.user_metadata?.avatar_url ? (
+                        <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.name || 'User'} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'}`}>
+                            <span className="text-sm font-medium">
+                                {user.user_metadata?.name?.[0]?.toUpperCase() || user.email?.[0].toUpperCase()}
+                            </span>
+                        </div>
+                    )}
+                    <span className={`text-sm hidden md:block ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-700'}`}>
+                        {user.user_metadata?.name || user.email}
+                    </span>
+                </button>
+            )}
         </div>
     </header>
+
+    {/* Settings Modal */}
+    {user && (
+        <UserSettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            user={user}
+            isDarkMode={isDarkMode}
+        />
+    )}
+    </>
   );
 };

@@ -5,11 +5,14 @@ import { Header } from '@/components/Header';
 import { MessageBubble } from '@/components/MessageBubble';
 import { InputArea } from '@/components/InputArea';
 import { ConversationList } from '@/components/ConversationList';
+import { ResonanceWave } from '@/components/ResonanceWave';
 import { sendMessageStream, initializeChat } from '@/services/geminiService';
 import { Message, Role, Language } from '@/types';
 import { SYSTEM_PROMPTS } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
 import { determineOutputLanguage } from '@/lib/languageDetection';
+import { createClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 export default function Home() {
   // --- State: Theme ---
@@ -32,6 +35,26 @@ export default function Home() {
   const [hasInitialized, setHasInitialized] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [conversationListKey, setConversationListKey] = useState(0);
+
+  // --- State: User ---
+  const supabase = createClient();
+  const [user, setUser] = useState<User | null>(null);
+
+  // --- Effect: Fetch User ---
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   // --- Effect: Theme Application ---
   useEffect(() => {
@@ -301,8 +324,14 @@ export default function Home() {
       <div className="flex-1 lg:ml-64">
         <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-32">
           {messages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} isDarkMode={isDarkMode} />
+            <MessageBubble
+              key={msg.id}
+              message={msg}
+              isDarkMode={isDarkMode}
+              userName={user?.user_metadata?.name}
+            />
           ))}
+          {isLoading && <ResonanceWave isDarkMode={isDarkMode} />}
           <div ref={messagesEndRef} />
         </main>
 
