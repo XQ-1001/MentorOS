@@ -42,16 +42,16 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-8 border-t transition-colors duration-300 ${isDarkMode ? 'bg-zinc-950/90 border-zinc-800' : 'bg-zinc-50/90 border-zinc-200'}`}>
+    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-8 border-t transition-colors duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
       <div className="max-w-5xl mx-auto px-4 relative">
-        <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-zinc-900/50 border-zinc-800 focus-within:ring-zinc-600' : 'bg-zinc-100 border-zinc-200 focus-within:ring-zinc-400'}`}>
+        <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#2C2C2E] focus-within:ring-[#2C2C2E]' : 'bg-zinc-100 border-zinc-200 focus-within:ring-zinc-400'}`}>
             <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder={`Ask ${MENTOR_NAME}...`}
-                className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-relaxed transition-colors ${isDarkMode ? 'text-zinc-100 placeholder-zinc-500' : 'text-zinc-900 placeholder-zinc-400'}`}
+                className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-[1.75] transition-colors ${isDarkMode ? 'text-[#EDEDED] placeholder-zinc-500' : 'text-zinc-900 placeholder-zinc-400'}`}
                 rows={1}
                 disabled={isLoading}
             />

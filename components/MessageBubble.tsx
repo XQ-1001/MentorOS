@@ -11,19 +11,19 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
   const isUser = message.role === Role.USER;
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-8 animate-fade-in`}>
+    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-10 animate-fade-in`}>
       <div
         className={`
           max-w-[85%] md:max-w-[75%] lg:max-w-[70%]
-          rounded-2xl px-6 py-4
-          leading-relaxed text-base md:text-lg tracking-wide
+          rounded-2xl px-7 py-5
+          leading-[1.75] text-base md:text-lg
           ${isUser
             ? isDarkMode
-              ? 'bg-zinc-800 text-zinc-100 border border-zinc-700'
+              ? 'bg-[#1C1C1E] text-[#EDEDED] border border-[#2C2C2E]'
               : 'bg-zinc-100 text-zinc-900 border border-zinc-200'
             : isDarkMode
-              ? 'bg-transparent text-zinc-200 border-l-2 border-white pl-6'
-              : 'bg-transparent text-zinc-900 border-l-2 border-zinc-900 pl-6'
+              ? 'bg-transparent text-[#EDEDED] border-l-2 border-[#EDEDED] pl-7'
+              : 'bg-transparent text-zinc-900 border-l-2 border-zinc-900 pl-7'
           }
         `}
       >

@@ -283,7 +283,7 @@ export default function Home() {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col font-sans selection:bg-white/20 ${isDarkMode ? 'bg-zinc-950 text-zinc-50' : 'bg-zinc-50 text-zinc-900'}`}>
+    <div className={`min-h-screen flex flex-col font-sans selection:bg-white/20 ${isDarkMode ? 'bg-[#0A0A0A] text-[#EDEDED]' : 'bg-zinc-50 text-zinc-900'}`}>
       <Header
         isDarkMode={isDarkMode}
         onThemeToggle={handleThemeToggle}

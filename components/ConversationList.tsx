@@ -217,7 +217,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className={`fixed top-20 left-4 z-50 md:hidden p-2 rounded-lg border transition-colors ${
           isDarkMode
-            ? 'bg-zinc-900 border-zinc-700 text-zinc-300 hover:bg-zinc-800'
+            ? 'bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED] hover:bg-[#2C2C2E]'
             : 'bg-white border-zinc-300 text-zinc-700 hover:bg-zinc-100'
         }`}
         aria-label="Toggle sidebar"
@@ -233,16 +233,16 @@ export const ConversationList: React.FC<ConversationListProps> = ({
       <div
         className={`fixed top-16 left-0 bottom-0 w-64 border-r transition-all duration-300 z-40 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${isDarkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}
+        } ${isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'}`}
       >
         <div className="flex flex-col h-full">
           {/* New Chat Button */}
-          <div className="p-3 border-b" style={{ borderColor: isDarkMode ? '#27272a' : '#e4e4e7' }}>
+          <div className="p-3 border-b" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#e4e4e7' }}>
             <button
               onClick={onNewConversation}
               className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors ${
                 isDarkMode
-                  ? 'bg-zinc-900 border-zinc-700 text-zinc-100 hover:bg-zinc-800'
+                  ? 'bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED] hover:bg-[#2C2C2E]'
                   : 'bg-white border-zinc-300 text-zinc-900 hover:bg-zinc-100'
               }`}
             >

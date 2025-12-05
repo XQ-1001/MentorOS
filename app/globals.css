@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafafa; /* zinc-50 */
-  --foreground: #09090b; /* zinc-950 */
+  --background: #fafafa; /* Light mode: zinc-50 */
+  --foreground: #18181b; /* Light mode: zinc-900 */
   --muted: #f4f4f5; /* zinc-100 */
   --accent: #27272a; /* zinc-800 */
+
+  /* Refined dark mode colors */
+  --dark-bg: #0A0A0A; /* Deep charcoal, not pure black */
+  --dark-fg: #EDEDED; /* Fog white, not harsh white */
+  --dark-muted: #1C1C1E; /* Subtle gray for cards/containers */
+  --dark-accent: #2C2C2E; /* Slightly lighter for borders/dividers */
 }
 
 @theme inline {
@@ -13,32 +19,67 @@
   --color-muted: var(--muted);
   --color-accent: var(--accent);
 
-  /* Custom font families */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Swiss-style typography with Inter */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  /* Swiss typography: generous spacing */
+  --line-height-relaxed: 1.75;
+  --line-height-loose: 2;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #09090b; /* zinc-950 */
-    --foreground: #fafafa; /* zinc-50 */
-    --muted: #27272a; /* zinc-800 */
-    --accent: #f4f4f5; /* zinc-100 */
+    --background: var(--dark-bg);
+    --foreground: var(--dark-fg);
+    --muted: var(--dark-muted);
+    --accent: var(--dark-accent);
   }
 }
 
 /* Dark mode class-based */
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --muted: #27272a;
-  --accent: #f4f4f5;
+  --background: var(--dark-bg);
+  --foreground: var(--dark-fg);
+  --muted: var(--dark-muted);
+  --accent: var(--dark-accent);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  /* Swiss typography: larger base size, generous line height */
+  font-size: 16px;
+  line-height: var(--line-height-relaxed);
+  letter-spacing: -0.011em; /* Subtle optical adjustment for Inter */
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; /* Inter stylistic sets */
+}
+
+/* Typography scale - Swiss style: clear hierarchy, generous spacing */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.75em;
+}
+
+h1 { font-size: 3rem; } /* 48px */
+h2 { font-size: 2.25rem; } /* 36px */
+h3 { font-size: 1.875rem; } /* 30px */
+h4 { font-size: 1.5rem; } /* 24px */
+h5 { font-size: 1.25rem; } /* 20px */
+h6 { font-size: 1.125rem; } /* 18px */
+
+p {
+  margin-bottom: 1.25em;
+  line-height: var(--line-height-relaxed);
+}
+
+/* Ensure comfortable reading width */
+.prose {
+  max-width: 65ch;
+  line-height: var(--line-height-loose);
 }
 
 /* Custom scrollbar */

@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300 ${isDarkMode ? 'bg-zinc-950/90 border-zinc-800' : 'bg-zinc-50/90 border-zinc-200'}`}>
+    <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-16 flex items-center justify-between px-4 md:px-8 transition-colors duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
         {/* User Info */}
         <div className="flex items-center gap-2">
             {user && (
@@ -49,13 +49,13 @@ export const Header: React.FC<HeaderProps> = ({
                     {user.user_metadata?.avatar_url ? (
                         <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.name || 'User'} className="w-8 h-8 rounded-full" />
                     ) : (
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-zinc-800 text-zinc-300' : 'bg-zinc-200 text-zinc-700'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'}`}>
                             <span className="text-sm font-medium">
                                 {user.email?.[0].toUpperCase()}
                             </span>
                         </div>
                     )}
-                    <span className={`text-sm hidden md:block ${isDarkMode ? 'text-zinc-300' : 'text-zinc-700'}`}>
+                    <span className={`text-sm hidden md:block ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-700'}`}>
                         {user.user_metadata?.name || user.email}
                     </span>
                 </>
@@ -63,15 +63,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex flex-col items-center absolute left-1/2 transform -translate-x-1/2">
-            <h1 className={`text-xl font-semibold tracking-tighter transition-colors ${isDarkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>{APP_NAME}</h1>
-            <span className={`text-xs uppercase tracking-[0.2em] ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>{APP_SUBTITLE}</span>
+            <h1 className={`text-xl font-semibold tracking-tighter transition-colors ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'}`}>{APP_NAME}</h1>
+            <span className={`text-xs uppercase tracking-[0.2em] ${isDarkMode ? 'text-zinc-500' : 'text-zinc-500'}`}>{APP_SUBTITLE}</span>
         </div>
 
         <div className="flex items-center gap-3 md:gap-4 z-10 ml-auto">
             {/* Theme Toggle */}
             <button
                 onClick={onThemeToggle}
-                className={`p-2 rounded-full transition-colors border border-transparent ${isDarkMode ? 'hover:bg-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700' : 'hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-300'}`}
+                className={`p-2 rounded-full transition-colors border border-transparent ${isDarkMode ? 'hover:bg-[#1C1C1E] text-zinc-500 hover:text-[#EDEDED] hover:border-[#2C2C2E]' : 'hover:bg-zinc-200 text-zinc-600 hover:text-zinc-900 hover:border-zinc-300'}`}
                 aria-label="Toggle Theme"
             >
                 {isDarkMode ? (
@@ -99,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
             {user && (
                 <button
                     onClick={handleSignOut}
-                    className={`px-3 py-1.5 text-xs md:text-sm rounded-lg border transition-colors ${isDarkMode ? 'bg-zinc-900/50 hover:bg-zinc-800 border-zinc-700 text-zinc-300' : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 text-zinc-700'}`}
+                    className={`px-3 py-1.5 text-xs md:text-sm rounded-lg border transition-colors ${isDarkMode ? 'bg-[#1C1C1E]/50 hover:bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED]' : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 text-zinc-700'}`}
                 >
                     Sign Out
                 </button>
