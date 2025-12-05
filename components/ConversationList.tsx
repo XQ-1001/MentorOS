@@ -231,7 +231,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed top-16 left-0 bottom-0 w-64 border-r transition-all duration-300 z-40 ${
+        className={`fixed top-20 left-0 bottom-0 w-64 border-r transition-all duration-300 z-40 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'}`}
       >

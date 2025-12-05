@@ -299,7 +299,7 @@ export default function Home() {
       />
 
       <div className="flex-1 lg:ml-64">
-        <main className="w-full max-w-5xl mx-auto px-4 pt-24 pb-32">
+        <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-32">
           {messages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} isDarkMode={isDarkMode} />
           ))}
