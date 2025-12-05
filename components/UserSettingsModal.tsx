@@ -22,8 +22,58 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   const [avatarUrl, setAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setMessage('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage('Image size must be less than 2MB');
+      return;
+    }
+
+    setIsUploading(true);
+    setMessage('');
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      setAvatarUrl(publicUrl);
+      setMessage('Image uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setMessage('Failed to upload image. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -123,20 +173,45 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             />
           </div>
 
-          {/* Avatar URL */}
+          {/* Avatar Section */}
           <div>
             <label
               className={`block text-sm font-medium mb-2 ${
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Avatar URL
+              Avatar
             </label>
+
+            {/* Upload Button */}
+            <div className="flex gap-2 mb-2">
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="avatar-upload"
+                className={`flex-1 px-4 py-2 rounded-lg border text-center cursor-pointer transition-colors ${
+                  isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                } ${
+                  isDarkMode
+                    ? 'bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED] hover:bg-[#2C2C2E]'
+                    : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:bg-zinc-200'
+                }`}
+              >
+                {isUploading ? 'Uploading...' : 'Upload Image'}
+              </label>
+            </div>
+
+            {/* Avatar URL Input */}
             <input
               type="url"
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
+              placeholder="Or paste image URL"
               className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
                 isDarkMode
                   ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FFBF00]'
@@ -148,7 +223,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 isDarkMode ? 'text-zinc-500' : 'text-zinc-500'
               }`}
             >
-              Enter a URL to an image for your avatar
+              Upload an image or paste URL (max 2MB)
             </p>
           </div>
 

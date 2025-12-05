@@ -8,73 +8,79 @@ interface ResonanceWaveProps {
 
 export const ResonanceWave: React.FC<ResonanceWaveProps> = ({ isDarkMode = true }) => {
   return (
-    <div className="flex flex-col gap-2 mb-8 w-full">
-      {/* Name label - script style */}
-      <div className={`text-xs uppercase tracking-wider font-semibold ${
-        isDarkMode ? 'text-[#FFBF00]' : 'text-amber-600'
-      }`}>
-        Resonance
-      </div>
-
-      {/* Wave content */}
-      <div className="flex flex-col gap-3">
-        {/* Wave bars */}
-        <div className="flex items-center gap-2.5 h-12">
-          {[0, 1, 2, 3, 4, 5, 6].map((index) => (
-            <div
-              key={index}
-              className="bar w-1 rounded-full bg-[#FFBF00]"
-              style={{
-                animationDelay: `${index * 0.15}s`
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Resonating text */}
-        <div className="status-text text-[#FFBF00] text-xs tracking-[0.2em] uppercase">
-          Resonating...
-        </div>
-      </div>
-
-      {/* Divider line */}
-      <div className={`h-px w-full mt-2 ${
-        isDarkMode ? 'bg-zinc-800' : 'bg-zinc-200'
-      }`} />
+    <div className="flex items-center justify-center py-8 w-full">
+      {/* Concentric circles animation - centered, no divider */}
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 48 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="concentric-circles"
+      >
+        {/* Outer circle - dotted */}
+        <circle cx="24" cy="24" r="20" className="circle-outer" stroke="#FFBF00" strokeWidth="2" fill="none" strokeDasharray="2 3" />
+        {/* Middle circle - dotted */}
+        <circle cx="24" cy="24" r="13" className="circle-middle" stroke="#FFBF00" strokeWidth="2" fill="none" strokeDasharray="2 3" />
+        {/* Inner circle - dotted */}
+        <circle cx="24" cy="24" r="6" className="circle-inner" stroke="#FFBF00" strokeWidth="2" fill="none" strokeDasharray="1.5 2.5" />
+        {/* Center dot - solid */}
+        <circle cx="24" cy="24" r="2" fill="#FFBF00" className="center-dot" />
+      </svg>
 
       <style jsx>{`
-        .bar {
-          height: 10px;
-          opacity: 0.4;
-          animation: resonate 1.2s infinite alternate ease-in-out;
+        .concentric-circles {
+          animation: rotate 8s linear infinite;
         }
 
-        @keyframes resonate {
-          0% {
-            height: 10px;
-            opacity: 0.4;
-            box-shadow: 0 0 0px rgba(255, 191, 0, 0);
+        .circle-outer {
+          animation: pulse-circle 2s ease-in-out infinite;
+          transform-origin: center;
+        }
+
+        .circle-middle {
+          animation: pulse-circle 2s ease-in-out infinite 0.3s;
+          transform-origin: center;
+        }
+
+        .circle-inner {
+          animation: pulse-circle 2s ease-in-out infinite 0.6s;
+          transform-origin: center;
+        }
+
+        .center-dot {
+          animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes rotate {
+          from {
+            transform: rotate(0deg);
           }
-          100% {
-            height: 40px;
-            opacity: 1;
-            box-shadow: 0 0 15px rgba(255, 191, 0, 0.8);
+          to {
+            transform: rotate(360deg);
           }
         }
 
-        .status-text {
-          opacity: 0.4;
-          animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
+        @keyframes pulse-circle {
           0%, 100% {
-            opacity: 0.4;
+            opacity: 0.3;
+            stroke-width: 1.5;
+          }
+          50% {
+            opacity: 1;
+            stroke-width: 2.5;
+          }
+        }
+
+        @keyframes pulse-dot {
+          0%, 100% {
+            opacity: 0.6;
           }
           50% {
             opacity: 1;
           }
         }
+
       `}</style>
     </div>
   );

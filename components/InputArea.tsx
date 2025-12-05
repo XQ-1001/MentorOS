@@ -42,7 +42,9 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-8 border-t transition-colors duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
+    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-8 border-t transition-all duration-300 ${
+      isLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+    } ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
       <div className="max-w-5xl mx-auto px-4 relative">
         <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#2C2C2E] focus-within:ring-[#2C2C2E]' : 'bg-zinc-100 border-zinc-200 focus-within:ring-zinc-400'}`}>
             <textarea

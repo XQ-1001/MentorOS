@@ -329,6 +329,8 @@ export default function Home() {
               message={msg}
               isDarkMode={isDarkMode}
               userName={user?.user_metadata?.name}
+              userAvatar={user?.user_metadata?.avatar_url}
+              userEmail={user?.email}
             />
           ))}
           {isLoading && <ResonanceWave isDarkMode={isDarkMode} />}
