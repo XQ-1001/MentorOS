@@ -34,7 +34,6 @@ export default function Home() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [conversationListKey, setConversationListKey] = useState(0);
 
   // --- State: User ---
   const supabase = createClient();
@@ -111,8 +110,6 @@ export default function Home() {
       if (res.ok) {
         const { conversation } = await res.json();
         setCurrentConversationId(conversation.id);
-        // Refresh conversation list
-        setConversationListKey(prev => prev + 1);
         return conversation.id;
       }
     } catch (error) {
@@ -313,7 +310,6 @@ export default function Home() {
       />
 
       <ConversationList
-        key={conversationListKey}
         currentConversationId={currentConversationId}
         onConversationSelect={handleConversationSelect}
         onNewConversation={handleNewConversation}
@@ -333,7 +329,9 @@ export default function Home() {
               userEmail={user?.email}
             />
           ))}
-          {isLoading && <ResonanceWave isDarkMode={isDarkMode} />}
+          {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' && (
+            <ResonanceWave isDarkMode={isDarkMode} />
+          )}
           <div ref={messagesEndRef} />
         </main>
 

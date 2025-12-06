@@ -58,15 +58,41 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           upsert: false
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('❌ Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('✅ File uploaded successfully to path:', filePath);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
+      console.log('🔗 Generated public URL:', publicUrl);
+
+      // Test if URL is accessible
+      try {
+        const testResponse = await fetch(publicUrl, { method: 'HEAD' });
+        console.log('🌐 URL accessibility test:', {
+          status: testResponse.status,
+          statusText: testResponse.statusText,
+          accessible: testResponse.ok
+        });
+
+        if (!testResponse.ok) {
+          console.warn('⚠️  URL is not accessible. This might be a bucket permission issue.');
+          setMessage(`Image uploaded but URL returned ${testResponse.status}. Check console for details.`);
+        } else {
+          setMessage('Image uploaded successfully!');
+        }
+      } catch (fetchError) {
+        console.error('❌ URL fetch test failed:', fetchError);
+        setMessage('Image uploaded but accessibility check failed. Check console.');
+      }
+
       setAvatarUrl(publicUrl);
-      setMessage('Image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading image:', error);
       setMessage('Failed to upload image. Please try again.');
@@ -92,7 +118,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       setMessage('Settings saved successfully!');
       setTimeout(() => {
         onClose();
-        window.location.reload(); // Refresh to update UI
+        // No need to reload - auth state change listener will update UI automatically
       }, 1000);
     } catch (error) {
       console.error('Error updating user:', error);

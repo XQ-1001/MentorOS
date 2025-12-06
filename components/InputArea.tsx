@@ -52,7 +52,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Ask ${MENTOR_NAME}...`}
+                placeholder="Awaiting your signal..."
                 className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-[1.75] transition-colors ${isDarkMode ? 'text-[#EDEDED] placeholder-zinc-500' : 'text-zinc-900 placeholder-zinc-400'}`}
                 rows={1}
                 disabled={isLoading}

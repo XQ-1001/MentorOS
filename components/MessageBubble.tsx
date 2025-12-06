@@ -13,12 +13,17 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode = true, userName, userAvatar, userEmail }) => {
   const isUser = message.role === Role.USER;
 
+  // Don't render AI message bubbles with empty content (show ResonanceWave instead)
+  if (!isUser && !message.content) {
+    return null;
+  }
+
   // Custom renderers for ReactMarkdown
   const renderers = {
     strong: ({ children, ...props }: any) => (
       <strong {...props} className={`font-bold tracking-wide ${
         isDarkMode
-          ? 'text-white'
+          ? 'text-[#C5C6C7]'
           : 'text-black'
       }`}>
         {children}
@@ -45,7 +50,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
       </h3>
     ),
     blockquote: ({ children, ...props }: any) => (
-      <blockquote {...props} className={`border-l-4 pl-4 my-4 ${isDarkMode ? 'border-l-[#FCD34D] text-zinc-400' : 'border-l-[#B45309] text-zinc-600'}`}>
+      <blockquote {...props} className={`border-l-4 pl-4 my-4 ${isDarkMode ? 'border-l-[#D4B483] text-zinc-400' : 'border-l-[#854D0E] text-zinc-600'}`}>
         {children}
       </blockquote>
     ),
@@ -69,10 +74,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
   return (
     <div className="flex flex-col gap-2 mb-8 w-full">
       {/* Name label - script style */}
-      <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold ${
+      <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold font-serif ${
         isUser
           ? isDarkMode ? 'text-zinc-500' : 'text-zinc-600'
-          : isDarkMode ? 'text-[#FCD34D]' : 'text-[#B45309]'
+          : isDarkMode ? 'text-[#D4B483]' : 'text-[#854D0E]'
       }`}>
         {!isUser ? (
           <svg
@@ -84,13 +89,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
             className={`concentric-icon flex-shrink-0 ${isDarkMode ? 'opacity-80' : ''}`}
           >
             {/* Outer circle - dotted */}
-            <circle cx="10" cy="10" r="8.5" className="circle-outer" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+            <circle cx="10" cy="10" r="8.5" className="circle-outer" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
             {/* Middle circle - dotted */}
-            <circle cx="10" cy="10" r="5.5" className="circle-middle" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+            <circle cx="10" cy="10" r="5.5" className="circle-middle" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
             {/* Inner circle - dotted */}
-            <circle cx="10" cy="10" r="2.5" className="circle-inner" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+            <circle cx="10" cy="10" r="2.5" className="circle-inner" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
             {/* Center dot - solid */}
-            <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#FCD34D" : "#B45309"} className="center-dot" />
+            <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#D4B483" : "#854D0E"} className="center-dot" />
           </svg>
         ) : (
           userAvatar ? (
@@ -164,16 +169,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
             ? 'text-zinc-400 font-normal'
             : 'text-zinc-600 font-normal'
           : isDarkMode
-            ? 'text-[#EDEDED] font-medium'
+            ? 'text-[#C5C6C7] font-medium'
             : 'text-zinc-900 font-medium'
         }
       `}>
         {isUser ? (
           <p className="whitespace-pre-wrap leading-[1.75] text-base">{message.content}</p>
         ) : (
-          <div className={`text-lg max-w-none ${
+          <div className={`text-base max-w-none ${
             isDarkMode
-              ? 'text-white/85'
+              ? 'text-[#C5C6C7]'
               : 'text-black/80'
           }`}>
             <ReactMarkdown components={renderers}>

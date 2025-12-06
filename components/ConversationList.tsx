@@ -22,7 +22,6 @@ interface ConversationListProps {
   onNewConversation: () => void;
   language: Language;
   isDarkMode: boolean;
-  onRefreshNeeded?: () => void;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
@@ -59,6 +58,14 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     setMounted(true);
     loadConversations();
   }, []);
+
+  // Refresh when currentConversationId changes to a new value we don't have yet
+  useEffect(() => {
+    if (currentConversationId && !conversations.find(c => c.id === currentConversationId)) {
+      // New conversation was created, reload the list
+      loadConversations();
+    }
+  }, [currentConversationId]);
 
   // Close context menu when clicking outside
   useEffect(() => {
