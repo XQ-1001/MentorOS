@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Resonance Lab - Jobs Edition",
+  title: "Resonance Lab",
   description: "Echoes of Great Minds. Where your thoughts collide with Steve Jobs' vision, creating resonance across time.",
 };
 
