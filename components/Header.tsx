@@ -49,28 +49,36 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2">
             {/* Dotted concentric circles icon - static */}
             <svg
-                width="16"
-                height="16"
+                width="18"
+                height="18"
                 viewBox="0 0 20 20"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
             >
                 {/* Outer circle - dotted */}
-                <circle cx="10" cy="10" r="8.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                <circle cx="10" cy="10" r="8.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
                 {/* Middle circle - dotted */}
-                <circle cx="10" cy="10" r="5.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                <circle cx="10" cy="10" r="5.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
                 {/* Inner circle - dotted */}
-                <circle cx="10" cy="10" r="2.5" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+                <circle cx="10" cy="10" r="2.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
                 {/* Center dot - solid */}
-                <circle cx="10" cy="10" r="1" fill="#FFBF00" />
+                <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#FCD34D" : "#B45309"} />
             </svg>
 
             {/* Brand name with gradient */}
-            <div className="flex items-center text-[16px] leading-none">
-                <span className="font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-[#FFBF00] via-[#EDEDED] to-[#999999]">
+            <div className="flex items-center text-[18px] leading-none">
+                <span className={`font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br ${
+                    isDarkMode
+                        ? 'from-[#FCD34D] via-[#EDEDED] to-[#999999]'
+                        : 'from-[#B45309] via-[#4B5563] to-[#1F2937]'
+                }`}>
                     Resonance
                 </span>
-                <span className={`ml-1 font-light font-serif italic ${isDarkMode ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                <span className={`ml-1 font-serif italic ${
+                    isDarkMode
+                        ? 'text-zinc-300 font-light'
+                        : 'text-gray-800 font-medium'
+                }`}>
                     Lab.
                 </span>
             </div>

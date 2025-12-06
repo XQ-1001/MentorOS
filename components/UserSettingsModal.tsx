@@ -48,7 +48,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = fileName;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
@@ -167,8 +167,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               placeholder="Enter your name"
               className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
                 isDarkMode
-                  ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FFBF00]'
-                  : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-amber-600'
+                  ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FCD34D]'
+                  : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-[#B45309]'
               }`}
             />
           </div>
@@ -198,8 +198,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   isUploading ? 'opacity-50 cursor-not-allowed' : ''
                 } ${
                   isDarkMode
-                    ? 'bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED] hover:bg-[#2C2C2E]'
-                    : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:bg-zinc-200'
+                    ? 'bg-[#FCD34D]/20 border-[#FCD34D]/30 text-[#FCD34D] hover:bg-[#FCD34D]/30'
+                    : 'bg-[#B45309]/20 border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
                 }`}
               >
                 {isUploading ? 'Uploading...' : 'Upload Image'}
@@ -214,8 +214,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               placeholder="Or paste image URL"
               className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
                 isDarkMode
-                  ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FFBF00]'
-                  : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-amber-600'
+                  ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FCD34D]'
+                  : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-[#B45309]'
               }`}
             />
             <p
@@ -306,8 +306,8 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   : ''
               } ${
                 isDarkMode
-                  ? 'bg-[#FFBF00] text-black hover:bg-[#FFA500]'
-                  : 'bg-amber-600 text-white hover:bg-amber-700'
+                  ? 'bg-[#FCD34D]/20 border border-[#FCD34D]/30 text-[#FCD34D] hover:bg-[#FCD34D]/30'
+                  : 'bg-[#B45309]/20 border border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
               }`}
             >
               {isLoading ? 'Saving...' : 'Save Changes'}

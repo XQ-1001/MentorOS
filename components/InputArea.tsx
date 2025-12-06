@@ -79,8 +79,8 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
                 )}
             </button>
         </div>
-        <p className="text-center text-[10px] text-zinc-500 mt-3 font-mono transition-colors">
-            RESONANCE // JOBS MODEL // V1.0
+        <p className="text-center text-xs uppercase tracking-[0.2em] text-zinc-500 mt-3 transition-colors">
+            RESONANCE LAB // JOBS MODEL // V1.0
         </p>
       </div>
     </div>

@@ -13,13 +13,66 @@ interface MessageBubbleProps {
 export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMode = true, userName, userAvatar, userEmail }) => {
   const isUser = message.role === Role.USER;
 
+  // Custom renderers for ReactMarkdown
+  const renderers = {
+    strong: ({ children, ...props }: any) => (
+      <strong {...props} className={`font-bold tracking-wide ${
+        isDarkMode
+          ? 'text-white'
+          : 'text-black'
+      }`}>
+        {children}
+      </strong>
+    ),
+    p: ({ children, ...props }: any) => (
+      <p {...props} className="my-3 leading-[1.75] last:mb-0">
+        {children}
+      </p>
+    ),
+    h1: ({ children, ...props }: any) => (
+      <h1 {...props} className={`text-2xl font-semibold tracking-tight mb-4 ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'}`}>
+        {children}
+      </h1>
+    ),
+    h2: ({ children, ...props }: any) => (
+      <h2 {...props} className={`text-xl font-semibold tracking-tight mb-3 ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'}`}>
+        {children}
+      </h2>
+    ),
+    h3: ({ children, ...props }: any) => (
+      <h3 {...props} className={`text-lg font-semibold tracking-tight mb-3 ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'}`}>
+        {children}
+      </h3>
+    ),
+    blockquote: ({ children, ...props }: any) => (
+      <blockquote {...props} className={`border-l-4 pl-4 my-4 ${isDarkMode ? 'border-l-[#FCD34D] text-zinc-400' : 'border-l-[#B45309] text-zinc-600'}`}>
+        {children}
+      </blockquote>
+    ),
+    ul: ({ children, ...props }: any) => (
+      <ul {...props} className="list-disc pl-6 my-3">
+        {children}
+      </ul>
+    ),
+    ol: ({ children, ...props }: any) => (
+      <ol {...props} className="list-decimal pl-6 my-3">
+        {children}
+      </ol>
+    ),
+    li: ({ children, ...props }: any) => (
+      <li {...props} className="marker:text-zinc-500">
+        {children}
+      </li>
+    ),
+  };
+
   return (
     <div className="flex flex-col gap-2 mb-8 w-full">
       {/* Name label - script style */}
       <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold ${
         isUser
           ? isDarkMode ? 'text-zinc-500' : 'text-zinc-600'
-          : isDarkMode ? 'text-[#FFBF00]' : 'text-amber-600'
+          : isDarkMode ? 'text-[#FCD34D]' : 'text-[#B45309]'
       }`}>
         {!isUser ? (
           <svg
@@ -28,16 +81,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
             viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="concentric-icon flex-shrink-0"
+            className={`concentric-icon flex-shrink-0 ${isDarkMode ? 'opacity-80' : ''}`}
           >
             {/* Outer circle - dotted */}
-            <circle cx="10" cy="10" r="8.5" className="circle-outer" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+            <circle cx="10" cy="10" r="8.5" className="circle-outer" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
             {/* Middle circle - dotted */}
-            <circle cx="10" cy="10" r="5.5" className="circle-middle" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+            <circle cx="10" cy="10" r="5.5" className="circle-middle" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
             {/* Inner circle - dotted */}
-            <circle cx="10" cy="10" r="2.5" className="circle-inner" stroke="#FFBF00" strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+            <circle cx="10" cy="10" r="2.5" className="circle-inner" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
             {/* Center dot - solid */}
-            <circle cx="10" cy="10" r="1" fill="#FFBF00" className="center-dot" />
+            <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#FCD34D" : "#B45309"} className="center-dot" />
           </svg>
         ) : (
           userAvatar ? (
@@ -118,23 +171,16 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
         {isUser ? (
           <p className="whitespace-pre-wrap leading-[1.75] text-base">{message.content}</p>
         ) : (
-          <div className={`
-            prose prose-lg max-w-none
-            ${isDarkMode ? 'prose-invert' : ''}
-            prose-p:my-3 prose-p:leading-[1.75]
-            prose-headings:font-semibold prose-headings:tracking-tight
-            ${isDarkMode ? 'prose-headings:text-[#EDEDED]' : 'prose-headings:text-zinc-900'}
-            ${isDarkMode ? 'prose-strong:text-[#EDEDED]' : 'prose-strong:text-zinc-900'}
-            ${isDarkMode ? 'prose-blockquote:border-l-[#FFBF00]' : 'prose-blockquote:border-l-amber-600'}
-            ${isDarkMode ? 'prose-blockquote:text-zinc-400' : 'prose-blockquote:text-zinc-600'}
-            prose-ul:list-disc
-            prose-li:marker:text-zinc-500
-          `}>
-            <ReactMarkdown>
+          <div className={`text-lg max-w-none ${
+            isDarkMode
+              ? 'text-white/85'
+              : 'text-black/80'
+          }`}>
+            <ReactMarkdown components={renderers}>
               {message.content}
             </ReactMarkdown>
             {message.isStreaming && (
-              <span className="inline-block w-2 h-4 ml-1 bg-[#0A0A0A] animate-pulse align-middle" />
+              <span className={`inline-block w-2 h-4 ml-1 animate-pulse align-middle ${isDarkMode ? 'bg-[#0A0A0A]' : 'bg-white'}`} />
             )}
           </div>
         )}
@@ -142,7 +188,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
 
       {/* Divider line */}
       <div className={`h-px w-full mt-2 ${
-        isDarkMode ? 'bg-[#0A0A0A]' : 'bg-zinc-200'
+        isDarkMode ? 'bg-[#0A0A0A]' : 'bg-white'
       }`} />
     </div>
   );
