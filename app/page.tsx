@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { determineOutputLanguage } from '@/lib/languageDetection';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
+import { useProfile } from '@/lib/hooks/useProfile';
 
 export default function Home() {
   // --- State: Theme ---
@@ -38,65 +39,25 @@ export default function Home() {
   // --- State: User ---
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<{ name?: string; avatar_url?: string } | null>(null);
 
-  // Fetch user profile from profiles table
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('display_name, avatar_url')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
-    }
-
-    if (data) {
-      // Map display_name to name for consistency
-      setProfile({
-        name: data.display_name,
-        avatar_url: data.avatar_url
-      });
-    }
-  };
+  // Use custom hook to manage profile data
+  const { profile } = useProfile(user);
 
   // --- Effect: Fetch User ---
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-
-      if (user) {
-        await fetchProfile(user.id);
-      }
     };
     getUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-
-      if (session?.user) {
-        await fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-      }
     });
-
-    // Listen for profile updates
-    const handleProfileUpdate = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (currentUser) {
-        await fetchProfile(currentUser.id);
-      }
-    };
-    window.addEventListener('profileUpdated', handleProfileUpdate);
 
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
     };
   }, [supabase.auth]);
 

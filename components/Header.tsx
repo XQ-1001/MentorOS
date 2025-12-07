@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { APP_SUBTITLE } from '@/constants';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { UserSettingsModal } from './UserSettingsModal';
+import { useProfile } from '@/lib/hooks/useProfile';
 
 interface HeaderProps {
   isDarkMode: boolean;
@@ -19,107 +20,27 @@ export const Header: React.FC<HeaderProps> = ({
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<{ name?: string; avatar_url?: string } | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  // Fetch user profile from profiles table
-  const fetchProfile = useCallback(async (userId: string) => {
-    try {
-      console.log('[Header] fetchProfile called for user:', userId);
-      console.log('[Header] Starting Supabase query...');
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('display_name, avatar_url')
-        .eq('id', userId)
-        .single();
-
-      console.log('[Header] Query completed');
-      console.log('[Header] Data:', data);
-      console.log('[Header] Error:', error);
-
-      if (error) {
-        console.error('[Header] Error fetching profile:', error);
-        return;
-      }
-
-      console.log('[Header] Profile data received:', data);
-      if (data) {
-        // Map display_name to name for consistency
-        const newProfile = {
-          name: data.display_name,
-          avatar_url: data.avatar_url
-        };
-        console.log('[Header] Setting profile to:', newProfile);
-        setProfile(newProfile);
-      } else {
-        console.warn('[Header] No profile data returned');
-      }
-    } catch (err) {
-      console.error('[Header] Exception in fetchProfile:', err);
-    }
-  }, [supabase]);
+  // Use custom hook to manage profile data
+  const { profile } = useProfile(user);
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-
-      if (user) {
-        await fetchProfile(user.id);
-      }
     };
     getUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const sessionUser = session?.user ?? null;
-      setUser(sessionUser);
-
-      if (sessionUser) {
-        await fetchProfile(sessionUser.id);
-      } else {
-        setProfile(null);
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [supabase, fetchProfile]);
-
-  // Separate effect for profile update listener that depends on user
-  useEffect(() => {
-    const handleProfileUpdate = (event: Event) => {
-      console.log('[Header] profileUpdated event received');
-      const customEvent = event as CustomEvent;
-      const eventData = customEvent.detail;
-      console.log('[Header] Event data:', eventData);
-
-      if (eventData && eventData.display_name !== undefined) {
-        // Use data from event directly instead of fetching
-        console.log('[Header] Using data from event');
-        const newProfile = {
-          name: eventData.display_name,
-          avatar_url: eventData.avatar_url
-        };
-        console.log('[Header] Setting profile to:', newProfile);
-        setProfile(newProfile);
-      } else if (user) {
-        // Fallback: fetch from database if no data in event
-        console.log('[Header] No data in event, fetching from database...');
-        fetchProfile(user.id);
-      }
-    };
-
-    console.log('[Header] Adding profileUpdated event listener');
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-
-    return () => {
-      console.log('[Header] Removing profileUpdated event listener');
-      window.removeEventListener('profileUpdated', handleProfileUpdate);
-    };
-  }, [user, fetchProfile]);
+  }, [supabase]);
 
   const handleSignOut = async () => {
     console.log('[Header] Sign out initiated');
