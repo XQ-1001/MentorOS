@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { APP_SUBTITLE } from '@/constants';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -19,25 +19,118 @@ export const Header: React.FC<HeaderProps> = ({
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<{ name?: string; avatar_url?: string } | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Fetch user profile from profiles table
+  const fetchProfile = useCallback(async (userId: string) => {
+    try {
+      console.log('[Header] fetchProfile called for user:', userId);
+      console.log('[Header] Starting Supabase query...');
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name, avatar_url')
+        .eq('id', userId)
+        .single();
+
+      console.log('[Header] Query completed');
+      console.log('[Header] Data:', data);
+      console.log('[Header] Error:', error);
+
+      if (error) {
+        console.error('[Header] Error fetching profile:', error);
+        return;
+      }
+
+      console.log('[Header] Profile data received:', data);
+      if (data) {
+        // Map display_name to name for consistency
+        const newProfile = {
+          name: data.display_name,
+          avatar_url: data.avatar_url
+        };
+        console.log('[Header] Setting profile to:', newProfile);
+        setProfile(newProfile);
+      } else {
+        console.warn('[Header] No profile data returned');
+      }
+    } catch (err) {
+      console.error('[Header] Exception in fetchProfile:', err);
+    }
+  }, [supabase]);
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      if (user) {
+        await fetchProfile(user.id);
+      }
     };
     getUser();
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const sessionUser = session?.user ?? null;
+      setUser(sessionUser);
+
+      if (sessionUser) {
+        await fetchProfile(sessionUser.id);
+      } else {
+        setProfile(null);
+      }
     });
 
-    return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase, fetchProfile]);
+
+  // Separate effect for profile update listener that depends on user
+  useEffect(() => {
+    const handleProfileUpdate = (event: Event) => {
+      console.log('[Header] profileUpdated event received');
+      const customEvent = event as CustomEvent;
+      const eventData = customEvent.detail;
+      console.log('[Header] Event data:', eventData);
+
+      if (eventData && eventData.display_name !== undefined) {
+        // Use data from event directly instead of fetching
+        console.log('[Header] Using data from event');
+        const newProfile = {
+          name: eventData.display_name,
+          avatar_url: eventData.avatar_url
+        };
+        console.log('[Header] Setting profile to:', newProfile);
+        setProfile(newProfile);
+      } else if (user) {
+        // Fallback: fetch from database if no data in event
+        console.log('[Header] No data in event, fetching from database...');
+        fetchProfile(user.id);
+      }
+    };
+
+    console.log('[Header] Adding profileUpdated event listener');
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+
+    return () => {
+      console.log('[Header] Removing profileUpdated event listener');
+      window.removeEventListener('profileUpdated', handleProfileUpdate);
+    };
+  }, [user, fetchProfile]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    console.log('[Header] Sign out initiated');
+
+    // Fire and forget - don't wait for the API response
+    supabase.auth.signOut().catch(err => {
+      console.error('[Header] Sign out API error (ignored):', err);
+    });
+
+    // Immediately redirect without waiting
+    console.log('[Header] Redirecting to sign in...');
     router.push('/auth/signin');
     router.refresh();
   };
@@ -134,17 +227,17 @@ export const Header: React.FC<HeaderProps> = ({
                     className="flex items-center gap-2 transition-opacity hover:opacity-80"
                     aria-label="User Settings"
                 >
-                    {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt={user.user_metadata?.name || 'User'} className="w-8 h-8 rounded-full object-cover" />
+                    {profile?.avatar_url ? (
+                        <img src={profile.avatar_url} alt={profile?.name || 'User'} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'}`}>
                             <span className="text-sm font-medium">
-                                {user.user_metadata?.name?.[0]?.toUpperCase() || user.email?.[0].toUpperCase()}
+                                {profile?.name?.[0]?.toUpperCase() || user.email?.[0].toUpperCase()}
                             </span>
                         </div>
                     )}
                     <span className={`text-sm hidden md:block ${isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-700'}`}>
-                        {user.user_metadata?.name || user.email}
+                        {profile?.name || user.email}
                     </span>
                 </button>
             )}

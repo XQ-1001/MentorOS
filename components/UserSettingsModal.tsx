@@ -18,112 +18,165 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   isDarkMode = true
 }) => {
   const supabase = createClient();
-  const [displayName, setDisplayName] = useState(user.user_metadata?.name || '');
-  const [avatarUrl, setAvatarUrl] = useState(user.user_metadata?.avatar_url || '');
+  const [displayName, setDisplayName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
 
+  // Fetch profile data from profiles table when modal opens
+  React.useEffect(() => {
+    if (isOpen && user) {
+      const fetchProfile = async () => {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('display_name, avatar_url')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          return;
+        }
+
+        if (data) {
+          setDisplayName(data.display_name || '');
+          setAvatarUrl(data.avatar_url || '');
+        }
+      };
+
+      fetchProfile();
+    }
+  }, [isOpen, user, supabase]);
+
   if (!isOpen) return null;
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('[Upload] Starting file upload...');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('[Upload] No file selected');
+      return;
+    }
+
+    console.log('[Upload] File selected:', file.name, file.type, file.size);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
+      console.log('[Upload] Invalid file type');
       setMessage('Please upload an image file');
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
+      console.log('[Upload] File too large');
       setMessage('Image size must be less than 2MB');
       return;
     }
 
+    console.log('[Upload] Setting isUploading to true');
     setIsUploading(true);
-    setMessage('');
+    setMessage('Uploading...');
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
+      // Upload via API route instead of direct client upload
+      console.log('[Upload] Uploading via API route...');
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const formData = new FormData();
+      formData.append('file', file);
 
-      if (uploadError) {
-        console.error('❌ Upload error:', uploadError);
-        throw uploadError;
+      const response = await fetch('/api/user/avatar', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+      console.log('[Upload] API response:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed');
       }
 
-      console.log('✅ File uploaded successfully to path:', filePath);
+      console.log('[Upload] ✅ Upload successful!');
+      console.log('[Upload] 🔗 Public URL:', result.url);
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      // Set avatar URL immediately
+      setAvatarUrl(result.url);
+      setMessage('Image uploaded successfully!');
 
-      console.log('🔗 Generated public URL:', publicUrl);
-
-      // Test if URL is accessible
-      try {
-        const testResponse = await fetch(publicUrl, { method: 'HEAD' });
-        console.log('🌐 URL accessibility test:', {
-          status: testResponse.status,
-          statusText: testResponse.statusText,
-          accessible: testResponse.ok
-        });
-
-        if (!testResponse.ok) {
-          console.warn('⚠️  URL is not accessible. This might be a bucket permission issue.');
-          setMessage(`Image uploaded but URL returned ${testResponse.status}. Check console for details.`);
-        } else {
-          setMessage('Image uploaded successfully!');
-        }
-      } catch (fetchError) {
-        console.error('❌ URL fetch test failed:', fetchError);
-        setMessage('Image uploaded but accessibility check failed. Check console.');
-      }
-
-      setAvatarUrl(publicUrl);
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setMessage('Failed to upload image. Please try again.');
+    } catch (error: any) {
+      console.error('[Upload] Error uploading image:', error);
+      setMessage(error.message || 'Failed to upload image. Try pasting image URL instead.');
     } finally {
+      console.log('[Upload] Setting isUploading to false');
       setIsUploading(false);
     }
   };
 
   const handleSave = async () => {
+    console.log('[UserSettingsModal] handleSave called', {
+      displayName,
+      avatarUrl,
+      userId: user.id,
+      isUploading
+    });
+
     setIsLoading(true);
     setMessage('');
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
-          name: displayName,
-          avatar_url: avatarUrl
-        }
+      console.log('[UserSettingsModal] Calling API to update profile...');
+      console.log('[UserSettingsModal] Update payload:', {
+        display_name: displayName,
+        avatar_url: avatarUrl
       });
 
-      if (error) throw error;
+      // Call API route to update profile
+      const response = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          display_name: displayName,
+          avatar_url: avatarUrl
+        })
+      });
 
+      console.log('[UserSettingsModal] API response status:', response.status);
+
+      const result = await response.json();
+      console.log('[UserSettingsModal] API response data:', result);
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+
+      console.log('[UserSettingsModal] Save successful!');
       setMessage('Settings saved successfully!');
+
+      // Dispatch event to notify other components with the updated data
+      console.log('[UserSettingsModal] Dispatching profileUpdated event with data:', {
+        display_name: displayName,
+        avatar_url: avatarUrl
+      });
+      window.dispatchEvent(new CustomEvent('profileUpdated', {
+        detail: {
+          display_name: displayName,
+          avatar_url: avatarUrl
+        }
+      }));
+
       setTimeout(() => {
+        console.log('[UserSettingsModal] Closing modal');
         onClose();
-        // No need to reload - auth state change listener will update UI automatically
       }, 1000);
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error('[UserSettingsModal] Error updating profile:', error);
       setMessage('Failed to update settings. Please try again.');
     } finally {
+      console.log('[UserSettingsModal] Setting isLoading to false');
       setIsLoading(false);
     }
   };
@@ -236,7 +289,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             <input
               type="url"
               value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
+              onChange={(e) => {
+                setAvatarUrl(e.target.value);
+                // Reset uploading state when user manually enters URL
+                if (isUploading) {
+                  setIsUploading(false);
+                  setMessage('');
+                }
+              }}
               placeholder="Or paste image URL"
               className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
                 isDarkMode
@@ -325,9 +385,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             </button>
             <button
               onClick={handleSave}
-              disabled={isLoading}
+              disabled={isLoading || isUploading}
               className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
-                isLoading
+                (isLoading || isUploading)
                   ? 'opacity-50 cursor-not-allowed'
                   : ''
               } ${
@@ -336,7 +396,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   : 'bg-[#B45309]/20 border border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
               }`}
             >
-              {isLoading ? 'Saving...' : 'Save Changes'}
+              {isLoading ? 'Saving...' : isUploading ? 'Uploading...' : 'Save Changes'}
             </button>
           </div>
         </div>
