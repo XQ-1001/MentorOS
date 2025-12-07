@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Language } from '@/types';
+import { ExportDialog } from './ExportDialog';
 
 interface Conversation {
   id: string;
@@ -42,6 +43,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   } | null>(null);
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
+  const [exportingConversation, setExportingConversation] = useState<string | null>(null);
 
   const t = {
     newChat: language === 'zh' ? '新对话' : 'New Chat',
@@ -52,6 +54,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     noConversations: language === 'zh' ? '暂无对话历史' : 'No conversations yet',
     rename: language === 'zh' ? '重命名' : 'Rename',
     delete: language === 'zh' ? '删除' : 'Delete',
+    export: language === 'zh' ? '导出' : 'Export',
   };
 
   useEffect(() => {
@@ -243,8 +246,28 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         } ${isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'}`}
       >
         <div className="flex flex-col h-full">
-          {/* New Chat Button */}
+          {/* Header with New Chat and Hide Sidebar */}
           <div className="p-3 border-b" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#e4e4e7' }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className={`text-xs font-medium ${isDarkMode ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                Conversations
+              </span>
+              {/* Hide Sidebar Button - Top Right */}
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className={`p-1.5 rounded-md transition-colors ${
+                  isDarkMode
+                    ? 'text-zinc-400 hover:bg-[#1C1C1E] hover:text-[#EDEDED]'
+                    : 'text-zinc-600 hover:bg-zinc-200 hover:text-zinc-900'
+                }`}
+                aria-label="Hide sidebar"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+              </button>
+            </div>
             <button
               onClick={onNewConversation}
               className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-lg border transition-colors ${
@@ -354,6 +377,24 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         </div>
       </div>
 
+      {/* Show Sidebar Button - appears when sidebar is hidden */}
+      {!isSidebarOpen && (
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className={`fixed top-24 left-4 z-50 p-2 rounded-md border transition-colors hidden md:block ${
+            isDarkMode
+              ? 'bg-[#1C1C1E] border-[#2C2C2E] text-zinc-400 hover:bg-[#2C2C2E] hover:text-[#EDEDED]'
+              : 'bg-white border-zinc-300 text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'
+          }`}
+          aria-label="Show sidebar"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="9" y1="3" x2="9" y2="21"></line>
+          </svg>
+        </button>
+      )}
+
       {/* Dropdown Menu */}
       {contextMenu && (
         <div
@@ -382,6 +423,24 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             {t.rename}
           </button>
           <button
+            onClick={() => {
+              setExportingConversation(contextMenu.conversationId);
+              setContextMenu(null);
+            }}
+            className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+              isDarkMode
+                ? 'text-zinc-200 hover:bg-zinc-800'
+                : 'text-zinc-800 hover:bg-zinc-100'
+            }`}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            {t.export}
+          </button>
+          <button
             onClick={() => handleDelete(contextMenu.conversationId)}
             className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
               isDarkMode
@@ -405,6 +464,22 @@ export const ConversationList: React.FC<ConversationListProps> = ({
         <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* Export Dialog */}
+      {exportingConversation && (
+        <ExportDialog
+          isOpen={!!exportingConversation}
+          onClose={() => setExportingConversation(null)}
+          conversationId={exportingConversation}
+          conversationTitle={
+            conversations.find(c => c.id === exportingConversation)?.title ||
+            conversations.find(c => c.id === exportingConversation)?.messages[0]?.content.slice(0, 30) ||
+            'conversation'
+          }
+          language={language}
+          isDarkMode={isDarkMode}
         />
       )}
     </>

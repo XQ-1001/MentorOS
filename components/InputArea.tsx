@@ -1,6 +1,5 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MENTOR_NAME } from '@/constants';
 
 interface InputAreaProps {
   onSend: (message: string) => void;
@@ -42,18 +41,32 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-8 border-t transition-all duration-300 ${
+    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-2 transition-all duration-300 lg:left-64 ${
       isLoading ? 'opacity-0 pointer-events-none' : 'opacity-100'
-    } ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
+    } ${isDarkMode ? 'bg-[#0A0A0A]/90' : 'bg-zinc-50/90'}`}>
+      <style>{`
+        @keyframes placeholderPulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 1; }
+        }
+        .input-with-pulse-dark::placeholder {
+          color: rgb(113, 113, 122);
+          animation: placeholderPulse 2.5s ease-in-out infinite;
+        }
+        .input-with-pulse-light::placeholder {
+          color: rgb(161, 161, 170);
+          animation: placeholderPulse 2.5s ease-in-out infinite;
+        }
+      `}</style>
       <div className="max-w-5xl mx-auto px-4 relative">
-        <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#2C2C2E] focus-within:ring-[#2C2C2E]' : 'bg-zinc-100 border-zinc-200 focus-within:ring-zinc-400'}`}>
+        <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#D4B483]/70 focus-within:ring-[#D4B483]/70' : 'bg-zinc-100 border-[#854D0E]/70 focus-within:ring-[#854D0E]/70'}`}>
             <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Awaiting your signal..."
-                className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-[1.75] transition-colors ${isDarkMode ? 'text-[#EDEDED] placeholder-zinc-500' : 'text-zinc-900 placeholder-zinc-400'}`}
+                className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-[1.75] ${isDarkMode ? 'text-[#C5C6C7] input-with-pulse-dark' : 'text-zinc-900 input-with-pulse-light'}`}
                 rows={1}
                 disabled={isLoading}
             />
@@ -62,8 +75,8 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
                 disabled={!input.trim() || isLoading}
                 className={`mb-1.5 mr-1.5 p-2 rounded-full transition-all duration-200 flex-shrink-0 ${
                     !input.trim() || isLoading
-                        ? isDarkMode ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed' : 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
-                        : isDarkMode ? 'bg-white text-black hover:bg-zinc-200' : 'bg-black text-white hover:bg-zinc-800'
+                        ? isDarkMode ? 'bg-[#D4B483]/20 text-[#D4B483]/40 cursor-not-allowed' : 'bg-[#854D0E]/20 text-[#854D0E]/40 cursor-not-allowed'
+                        : isDarkMode ? 'bg-[#D4B483] text-[#0A0A0A] hover:bg-[#FCD34D]' : 'bg-[#854D0E] text-white hover:bg-[#B45309]'
                 }`}
             >
                 {isLoading ? (
@@ -79,8 +92,8 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, isLoading, isDarkM
                 )}
             </button>
         </div>
-        <p className="text-center text-xs uppercase tracking-[0.2em] text-zinc-500 mt-3 transition-colors">
-            RESONANCE LAB // JOBS MODEL // V1.0
+        <p className="text-center text-xs uppercase tracking-[0.2em] mt-8 mb-1 transition-colors" style={{ color: 'rgba(113, 113, 122, 0.5)' }}>
+            RESONANCE LAB // MODEL: VISIONARY // V1.0
         </p>
       </div>
     </div>

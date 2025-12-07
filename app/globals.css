@@ -115,3 +115,20 @@ p {
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
 }
+
+/* Placeholder pulse animation */
+@keyframes placeholder-pulse {
+  0%, 100% {
+    opacity: 0.4 !important;
+  }
+  50% {
+    opacity: 1 !important;
+  }
+}
+
+textarea.placeholder-pulse::placeholder,
+textarea.placeholder-pulse::-webkit-input-placeholder,
+textarea.placeholder-pulse::-moz-placeholder,
+textarea.placeholder-pulse:-ms-input-placeholder {
+  animation: placeholder-pulse 2.5s ease-in-out infinite !important;
+}

@@ -3,7 +3,7 @@
 import { STEVE_JOBS_COMPLETE_CONTEXT } from '@/lib/steveJobsContext';
 
 export const APP_NAME = "Resonance Lab";
-export const APP_SUBTITLE = "Jobs Edition";
+export const APP_SUBTITLE = "";
 export const APP_TAGLINE = "Echoes of Great Minds";
 export const APP_TAGLINE_CN = "伟大思想的回响";
 export const MENTOR_NAME = "Steve Jobs";

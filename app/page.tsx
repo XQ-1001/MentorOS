@@ -73,8 +73,8 @@ export default function Home() {
 
     // Initial greeting in user's browser language
     const greeting = language === 'zh'
-      ? "那些疯狂到以为自己能够改变世界的人，正是那些真正改变世界的人。\n\n你准备好不再对平庸妥协了吗？\n\n以此为起点，告诉我你现在的困惑。"
-      : "The people who are crazy enough to think they can change the world are the ones who do.\n\nAre you ready to stop compromising with mediocrity?\n\nStarting from there, tell me what you are wrestling with.";
+      ? "简洁比复杂更难。你必须付出巨大的努力，才能让思绪变得清晰。\n\n但这很值得。因为一旦你做到了，你就可以以此撼动山岳。\n\n无论是关于一个 **产品**、一种 **困惑**，还是一个 **未成形的梦**...\n\n我们可以从哪里开始？"
+      : "Simple can be harder than complex. You have to work hard to get your thinking clean to make it simple.\n\nBut it's worth it in the end because once you get there, you can move mountains.\n\nWhether it is about a **product**, a **dilemma**, or an **unformed dream**...\n\nWhere shall we begin?";
 
     setMessages([{
         id: uuidv4(),
@@ -147,6 +147,16 @@ export default function Home() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Immediately add empty AI message to show loading state
+    const modelMessageId = uuidv4();
+    const modelMessage: Message = {
+        id: modelMessageId,
+        role: Role.MODEL,
+        content: '',
+        isStreaming: true
+    };
+    setMessages((prev) => [...prev, modelMessage]);
+
     // Detect language from user input and conversation history
     const conversationHistory = messages.map(msg => ({
       role: msg.role,
@@ -185,16 +195,6 @@ export default function Home() {
     if (conversationId) {
       await saveMessage(conversationId, Role.USER, text);
     }
-
-    const modelMessageId = uuidv4();
-    const modelMessage: Message = {
-        id: modelMessageId,
-        role: Role.MODEL,
-        content: '',
-        isStreaming: true
-    };
-
-    setMessages((prev) => [...prev, modelMessage]);
 
     let fullResponse = '';
 
@@ -288,8 +288,8 @@ export default function Home() {
 
     // Reset messages to greeting in user's preferred language
     const greeting = language === 'zh'
-      ? "那些疯狂到以为自己能够改变世界的人，正是那些真正改变世界的人。\n\n你准备好不再对平庸妥协了吗？\n\n以此为起点，告诉我你现在的困惑。"
-      : "The people who are crazy enough to think they can change the world are the ones who do.\n\nAre you ready to stop compromising with mediocrity?\n\nStarting from there, tell me what you are wrestling with.";
+      ? "简洁比复杂更难。你必须付出巨大的努力，才能让思绪变得清晰。\n\n但这很值得。因为一旦你做到了，你就可以以此撼动山岳。\n\n无论是关于一个 **产品**、一种 **困惑**，还是一个 **未成形的梦**...\n\n我们可以从哪里开始？"
+      : "Simple can be harder than complex. You have to work hard to get your thinking clean to make it simple.\n\nBut it's worth it in the end because once you get there, you can move mountains.\n\nWhether it is about a **product**, a **dilemma**, or an **unformed dream**...\n\nWhere shall we begin?";
 
     setMessages([{
       id: uuidv4(),
