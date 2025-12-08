@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 interface UserSettingsModalProps {
@@ -17,6 +18,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   user,
   isDarkMode = true
 }) => {
+  const router = useRouter();
   const supabase = createClient();
   const [displayName, setDisplayName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -179,6 +181,21 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       console.log('[UserSettingsModal] Setting isLoading to false');
       setIsLoading(false);
     }
+  };
+
+  const handleSignOut = async () => {
+    console.log('[UserSettingsModal] Sign out initiated');
+
+    // Fire and forget - don't wait for the API response
+    supabase.auth.signOut().catch(err => {
+      console.error('[UserSettingsModal] Sign out API error (ignored):', err);
+    });
+
+    // Close modal and redirect
+    onClose();
+    console.log('[UserSettingsModal] Redirecting to sign in...');
+    router.push('/auth/signin');
+    router.refresh();
   };
 
   return (
@@ -397,6 +414,20 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               }`}
             >
               {isLoading ? 'Saving...' : isUploading ? 'Uploading...' : 'Save Changes'}
+            </button>
+          </div>
+
+          {/* Sign Out Button */}
+          <div className="pt-4 mt-4 border-t border-opacity-20" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#E5E7EB' }}>
+            <button
+              onClick={handleSignOut}
+              className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+                isDarkMode
+                  ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
+                  : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
+              }`}
+            >
+              Sign Out
             </button>
           </div>
         </div>

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { APP_SUBTITLE } from '@/constants';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { UserSettingsModal } from './UserSettingsModal';
 import { useProfile } from '@/lib/hooks/useProfile';
@@ -17,7 +16,6 @@ export const Header: React.FC<HeaderProps> = ({
   isDarkMode,
   onThemeToggle
 }) => {
-  const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -41,20 +39,6 @@ export const Header: React.FC<HeaderProps> = ({
       subscription.unsubscribe();
     };
   }, [supabase]);
-
-  const handleSignOut = async () => {
-    console.log('[Header] Sign out initiated');
-
-    // Fire and forget - don't wait for the API response
-    supabase.auth.signOut().catch(err => {
-      console.error('[Header] Sign out API error (ignored):', err);
-    });
-
-    // Immediately redirect without waiting
-    console.log('[Header] Redirecting to sign in...');
-    router.push('/auth/signin');
-    router.refresh();
-  };
 
   return (
     <>
@@ -130,16 +114,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </svg>
                 )}
             </button>
-
-            {/* Sign Out Button */}
-            {user && (
-                <button
-                    onClick={handleSignOut}
-                    className={`px-3 py-1.5 text-xs md:text-sm rounded-lg border transition-colors ${isDarkMode ? 'bg-[#1C1C1E]/50 hover:bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED]' : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 text-zinc-700'}`}
-                >
-                    Sign Out
-                </button>
-            )}
 
             {/* User Info - Avatar and Name (Right) */}
             {user && (
