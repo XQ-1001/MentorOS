@@ -1,0 +1,12 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="180" height="180" fill="#0A0A0A"/>
+  <!-- Outer circle - dotted -->
+  <circle cx="90" cy="90" r="76.5" stroke="#FCD34D" stroke-width="13.5" fill="none" stroke-dasharray="13.5 22.5" />
+  <!-- Middle circle - dotted -->
+  <circle cx="90" cy="90" r="49.5" stroke="#FCD34D" stroke-width="13.5" fill="none" stroke-dasharray="13.5 22.5" />
+  <!-- Inner circle - dotted -->
+  <circle cx="90" cy="90" r="22.5" stroke="#FCD34D" stroke-width="13.5" fill="none" stroke-dasharray="13.5 18" />
+  <!-- Center dot - solid -->
+  <circle cx="90" cy="90" r="9" fill="#FCD34D" />
+</svg>
