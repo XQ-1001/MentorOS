@@ -181,7 +181,7 @@ export default function Home() {
 
     if (isFirstMessage) {
       // Generate AI-powered title based on user message
-      let title = text.length > 15 ? text.substring(0, 15) + '...' : text; // Fallback
+      let title = text.length > 10 ? text.substring(0, 10) : text; // Fallback
 
       try {
         const titleResponse = await fetch('/api/generate-title', {
