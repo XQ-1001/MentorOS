@@ -313,6 +313,7 @@ export default function Home() {
       <Header
         isDarkMode={isDarkMode}
         onThemeToggle={handleThemeToggle}
+        language={language}
       />
 
       <ConversationList

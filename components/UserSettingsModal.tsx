@@ -4,19 +4,23 @@ import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
+import { USER_SETTINGS_LOCALE } from '@/constants';
+import type { Language } from '@/types';
 
 interface UserSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User;
   isDarkMode?: boolean;
+  language?: Language;
 }
 
 export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   isOpen,
   onClose,
   user,
-  isDarkMode = true
+  isDarkMode = true,
+  language = 'en'
 }) => {
   const router = useRouter();
   const supabase = createClient();
@@ -25,6 +29,9 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  // Get localized text based on language
+  const t = USER_SETTINGS_LOCALE[language];
 
   // Fetch profile data from profiles table when modal opens
   React.useEffect(() => {
@@ -66,20 +73,20 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
     // Validate file type
     if (!file.type.startsWith('image/')) {
       console.log('[Upload] Invalid file type');
-      setMessage('Please upload an image file');
+      setMessage(t.uploadFailed);
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       console.log('[Upload] File too large');
-      setMessage('Image size must be less than 2MB');
+      setMessage(t.fileTooLarge);
       return;
     }
 
     console.log('[Upload] Setting isUploading to true');
     setIsUploading(true);
-    setMessage('Uploading...');
+    setMessage(t.uploading);
 
     try {
       // Upload via API route instead of direct client upload
@@ -105,11 +112,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
       // Set avatar URL immediately
       setAvatarUrl(result.url);
-      setMessage('Image uploaded successfully!');
+      setMessage(t.uploadSuccess);
 
     } catch (error: any) {
       console.error('[Upload] Error uploading image:', error);
-      setMessage(error.message || 'Failed to upload image. Try pasting image URL instead.');
+      setMessage(error.message || t.uploadError);
     } finally {
       console.log('[Upload] Setting isUploading to false');
       setIsUploading(false);
@@ -156,7 +163,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       }
 
       console.log('[UserSettingsModal] Save successful!');
-      setMessage('Settings saved successfully!');
+      setMessage(t.saveSuccess);
 
       // Dispatch event to notify other components with the updated data
       console.log('[UserSettingsModal] Dispatching profileUpdated event with data:', {
@@ -176,7 +183,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
       }, 1000);
     } catch (error) {
       console.error('[UserSettingsModal] Error updating profile:', error);
-      setMessage('Failed to update settings. Please try again.');
+      setMessage(t.saveFailed);
     } finally {
       console.log('[UserSettingsModal] Setting isLoading to false');
       setIsLoading(false);
@@ -217,11 +224,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2
-            className={`text-xl font-semibold ${
+            className={`text-sm font-semibold ${
               isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'
             }`}
           >
-            User Settings
+            {t.title}
           </h2>
           <button
             onClick={onClose}
@@ -254,14 +261,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Display Name
+              {t.displayName}
             </label>
             <input
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Enter your name"
-              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
+              placeholder={t.displayNamePlaceholder}
+              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors text-sm ${
                 isDarkMode
                   ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FCD34D]'
                   : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-[#B45309]'
@@ -276,7 +283,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
-              Avatar
+              {t.avatar}
             </label>
 
             {/* Upload Button */}
@@ -290,7 +297,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               />
               <label
                 htmlFor="avatar-upload"
-                className={`flex-1 px-4 py-2 rounded-lg border text-center cursor-pointer transition-colors ${
+                className={`flex-1 px-4 py-2 rounded-lg border text-center cursor-pointer transition-colors text-sm ${
                   isUploading ? 'opacity-50 cursor-not-allowed' : ''
                 } ${
                   isDarkMode
@@ -298,7 +305,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                     : 'bg-[#B45309]/20 border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
                 }`}
               >
-                {isUploading ? 'Uploading...' : 'Upload Image'}
+                {isUploading ? t.uploading : t.uploadImage}
               </label>
             </div>
 
@@ -314,19 +321,19 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   setMessage('');
                 }
               }}
-              placeholder="Or paste image URL"
-              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors ${
+              placeholder={t.pasteUrlPlaceholder}
+              className={`w-full px-4 py-2 rounded-lg border outline-none transition-colors text-sm ${
                 isDarkMode
                   ? 'bg-[#0A0A0A] border-[#2C2C2E] text-[#EDEDED] placeholder-zinc-600 focus:border-[#FCD34D]'
                   : 'bg-zinc-50 border-zinc-300 text-zinc-900 placeholder-zinc-400 focus:border-[#B45309]'
               }`}
             />
             <p
-              className={`text-xs mt-1 ${
+              className={`text-sm mt-1 ${
                 isDarkMode ? 'text-zinc-500' : 'text-zinc-500'
               }`}
             >
-              Upload an image or paste URL (max 2MB)
+              {t.uploadHint}
             </p>
           </div>
 
@@ -338,11 +345,11 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               }`}
             >
               <p
-                className={`text-xs font-medium mb-2 ${
+                className={`text-sm font-medium mb-2 ${
                   isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
-                Preview:
+                {t.preview}
               </p>
               <div className="flex items-center gap-3">
                 {avatarUrl ? (
@@ -392,18 +399,18 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           <div className="flex gap-3 pt-2">
             <button
               onClick={onClose}
-              className={`flex-1 px-4 py-2 rounded-lg border transition-colors ${
+              className={`flex-1 px-4 py-2 rounded-lg border transition-colors text-sm ${
                 isDarkMode
                   ? 'bg-transparent border-[#2C2C2E] text-[#EDEDED] hover:bg-[#1C1C1E]'
                   : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:bg-zinc-200'
               }`}
             >
-              Cancel
+              {t.cancel}
             </button>
             <button
               onClick={handleSave}
               disabled={isLoading || isUploading}
-              className={`flex-1 px-4 py-2 rounded-lg transition-colors ${
+              className={`flex-1 px-4 py-2 rounded-lg transition-colors text-sm ${
                 (isLoading || isUploading)
                   ? 'opacity-50 cursor-not-allowed'
                   : ''
@@ -413,7 +420,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
                   : 'bg-[#B45309]/20 border border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
               }`}
             >
-              {isLoading ? 'Saving...' : isUploading ? 'Uploading...' : 'Save Changes'}
+              {isLoading ? t.saving : isUploading ? t.uploading : t.save}
             </button>
           </div>
 
@@ -421,13 +428,13 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           <div className="pt-4 mt-4 border-t border-opacity-20" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#E5E7EB' }}>
             <button
               onClick={handleSignOut}
-              className={`w-full px-4 py-2 rounded-lg border transition-colors ${
+              className={`w-full px-4 py-2 rounded-lg border transition-colors text-sm ${
                 isDarkMode
                   ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
                   : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
               }`}
             >
-              Sign Out
+              {t.signOut}
             </button>
           </div>
         </div>

@@ -6,15 +6,18 @@ import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { UserSettingsModal } from './UserSettingsModal';
 import { useProfile } from '@/lib/hooks/useProfile';
+import type { Language } from '@/types';
 
 interface HeaderProps {
   isDarkMode: boolean;
   onThemeToggle: () => void;
+  language?: Language;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   isDarkMode,
-  onThemeToggle
+  onThemeToggle,
+  language = 'en'
 }) => {
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
@@ -146,6 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClose={() => setIsSettingsOpen(false)}
             user={user}
             isDarkMode={isDarkMode}
+            language={language}
         />
     )}
     </>

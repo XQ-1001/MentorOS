@@ -366,3 +366,49 @@ export const SYSTEM_PROMPTS = {
   zh: JOBS_BILINGUAL_SYSTEM_PROMPT,
   en: JOBS_BILINGUAL_SYSTEM_PROMPT
 };
+
+// User Settings Modal Localization
+export const USER_SETTINGS_LOCALE = {
+  en: {
+    title: 'User Settings',
+    displayName: 'Display Name',
+    displayNamePlaceholder: 'Enter your name',
+    avatar: 'Avatar',
+    uploadImage: 'Upload Image',
+    uploading: 'Uploading...',
+    pasteUrlPlaceholder: 'Or paste image URL',
+    uploadHint: 'Upload an image or paste URL (max 2MB)',
+    preview: 'Preview:',
+    cancel: 'Cancel',
+    save: 'Save Changes',
+    saving: 'Saving...',
+    signOut: 'Sign Out',
+    uploadFailed: 'Please upload an image file',
+    fileTooLarge: 'Image size must be less than 2MB',
+    uploadSuccess: 'Image uploaded successfully!',
+    saveSuccess: 'Settings saved successfully!',
+    saveFailed: 'Failed to update settings. Please try again.',
+    uploadError: 'Failed to upload image. Try pasting image URL instead.'
+  },
+  zh: {
+    title: '用户设置',
+    displayName: '显示名称',
+    displayNamePlaceholder: '请输入您的名字',
+    avatar: '头像',
+    uploadImage: '上传图片',
+    uploading: '上传中...',
+    pasteUrlPlaceholder: '或粘贴图片链接',
+    uploadHint: '上传图片或粘贴链接（最大 2MB）',
+    preview: '预览：',
+    cancel: '取消',
+    save: '保存更改',
+    saving: '保存中...',
+    signOut: '退出登录',
+    uploadFailed: '请上传图片文件',
+    fileTooLarge: '图片大小必须小于 2MB',
+    uploadSuccess: '图片上传成功！',
+    saveSuccess: '设置保存成功！',
+    saveFailed: '更新设置失败，请重试。',
+    uploadError: '图片上传失败，请尝试粘贴图片链接。'
+  }
+};
