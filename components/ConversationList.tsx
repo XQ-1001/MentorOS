@@ -46,6 +46,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   const [exportingConversation, setExportingConversation] = useState<string | null>(null);
 
   const t = {
+    conversations: language === 'zh' ? '对话列表' : 'Conversations',
     newChat: language === 'zh' ? '新对话' : 'New Chat',
     today: language === 'zh' ? '今天' : 'Today',
     yesterday: language === 'zh' ? '昨天' : 'Yesterday',
@@ -249,8 +250,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           {/* Header with New Chat and Hide Sidebar */}
           <div className="p-3 border-b" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#e4e4e7' }}>
             <div className="flex items-center justify-between mb-3">
-              <span className={`text-xs font-medium ${isDarkMode ? 'text-zinc-500' : 'text-zinc-600'}`}>
-                Conversations
+              <span className={`text-sm font-medium ${isDarkMode ? 'text-zinc-500' : 'text-zinc-600'}`}>
+                {t.conversations}
               </span>
               {/* Hide Sidebar Button - Top Right */}
               <button

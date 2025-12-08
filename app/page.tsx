@@ -180,7 +180,30 @@ export default function Home() {
     let conversationId = currentConversationId;
 
     if (isFirstMessage) {
-      const title = text.length > 50 ? text.substring(0, 50) + '...' : text;
+      // Generate AI-powered title based on user message
+      let title = text.length > 15 ? text.substring(0, 15) + '...' : text; // Fallback
+
+      try {
+        const titleResponse = await fetch('/api/generate-title', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userMessage: text,
+            language: detectedLanguage
+          }),
+        });
+
+        if (titleResponse.ok) {
+          const { title: generatedTitle } = await titleResponse.json();
+          if (generatedTitle) {
+            title = generatedTitle;
+          }
+        }
+      } catch (error) {
+        console.error('Failed to generate title:', error);
+        // Use fallback title
+      }
+
       conversationId = await ensureConversation(title);
 
       // Update conversation language to detected language

@@ -222,17 +222,18 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="relative flex items-center justify-center mb-6">
           <h2
-            className={`text-sm font-semibold ${
+            className={`font-bold ${
               isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'
             }`}
+            style={{ fontSize: '14px', letterSpacing: '0.25em' }}
           >
             {t.title}
           </h2>
           <button
             onClick={onClose}
-            className={`p-2 rounded-full transition-colors ${
+            className={`absolute right-0 p-2 rounded-full transition-colors ${
               isDarkMode
                 ? 'hover:bg-[#2C2C2E] text-zinc-500'
                 : 'hover:bg-zinc-100 text-zinc-600'
@@ -254,6 +255,26 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
         {/* Form */}
         <div className="space-y-4">
+          {/* Email (Read-only) */}
+          <div>
+            <label
+              className={`block text-sm font-medium mb-2 ${
+                isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
+              }`}
+            >
+              {t.email}
+            </label>
+            <div
+              className={`w-full px-4 py-2 rounded-lg border text-sm ${
+                isDarkMode
+                  ? 'bg-[#0A0A0A] border-[#2C2C2E] text-zinc-500'
+                  : 'bg-zinc-50 border-zinc-300 text-zinc-500'
+              }`}
+            >
+              {user.email}
+            </div>
+          </div>
+
           {/* Display Name */}
           <div>
             <label

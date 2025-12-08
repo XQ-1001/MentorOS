@@ -68,7 +68,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Brand name with gradient */}
             <div className="flex items-center text-[18px] leading-none">
-                <span className={`font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br ${
+                <span className={`font-serif font-semibold tracking-wider bg-clip-text text-transparent bg-gradient-to-br ${
                     isDarkMode
                         ? 'from-[#FCD34D] via-[#EDEDED] to-[#999999]'
                         : 'from-[#B45309] via-[#4B5563] to-[#1F2937]'

@@ -371,6 +371,7 @@ export const SYSTEM_PROMPTS = {
 export const USER_SETTINGS_LOCALE = {
   en: {
     title: 'User Settings',
+    email: 'Email',
     displayName: 'Display Name',
     displayNamePlaceholder: 'Enter your name',
     avatar: 'Avatar',
@@ -392,6 +393,7 @@ export const USER_SETTINGS_LOCALE = {
   },
   zh: {
     title: '用户设置',
+    email: '登录邮箱',
     displayName: '显示名称',
     displayNamePlaceholder: '请输入您的名字',
     avatar: '头像',
