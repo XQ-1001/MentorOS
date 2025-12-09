@@ -97,7 +97,8 @@ Output: Model Check`;
       });
 
       // Fallback with keyword extraction if API fails
-      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter((w: string) => w.length > 0);
+      const splitWords = userMessage.split(/[，。？！、；\s,\.?!;]+/);
+      const words = splitWords.filter((w: string) => w.length > 0);
       const fallbackTitle = words[0] && words[0].length <= 10
         ? words[0]
         : userMessage.substring(0, 10);
@@ -117,7 +118,8 @@ Output: Model Check`;
     // Reasoning often contains thought process + final answer
     if (!message?.content && message?.reasoning) {
       // Look for common patterns: "标题：xxx", "标题是xxx", or the last line
-      const reasoningLines = generatedTitle.split('\n').filter((l: string) => l.trim());
+      const splitLines = generatedTitle.split('\n');
+      const reasoningLines = splitLines.filter((l: string) => l.trim());
       const titleMatch = generatedTitle.match(/(?:标题[:：是]?|Title[:：]?)\s*["']?([^"'\n]{1,10})["']?/i);
       if (titleMatch && titleMatch[1]) {
         generatedTitle = titleMatch[1].trim();
@@ -147,7 +149,8 @@ Output: Model Check`;
     // Fallback if generation failed - extract keywords instead of simple truncation
     if (!generatedTitle) {
       // Try to extract meaningful keywords
-      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter((w: string) => w.length > 0);
+      const splitWords = userMessage.split(/[，。？！、；\s,\.?!;]+/);
+      const words = splitWords.filter((w: string) => w.length > 0);
       // Take first meaningful segment, prefer nouns/key phrases
       generatedTitle = words[0] && words[0].length <= 10
         ? words[0]
@@ -163,7 +166,8 @@ Output: Model Check`;
     try {
       const body = await req.json();
       const msg = body.userMessage || '';
-      const words = msg.split(/[，。？！、；\s,\.?!;]+/).filter((w: string) => w.length > 0);
+      const splitWords = msg.split(/[，。？！、；\s,\.?!;]+/);
+      const words = splitWords.filter((w: string) => w.length > 0);
       const fallbackTitle = words[0] && words[0].length <= 10
         ? words[0]
         : msg.substring(0, 10) || 'New Chat';
