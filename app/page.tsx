@@ -360,7 +360,7 @@ export default function Home() {
             />
           ))}
           {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' && (
-            <ResonanceWave isDarkMode={isDarkMode} />
+            <ResonanceWave isDarkMode={isDarkMode} language={language} />
           )}
           <div ref={messagesEndRef} />
         </main>

@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { APP_NAME } from '@/constants';
 
 export default function SignIn() {
   const router = useRouter();
@@ -91,9 +90,45 @@ export default function SignIn() {
       <div className={`w-full max-w-md p-8 rounded-2xl border transition-colors ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className={`text-2xl font-semibold mb-2 ${isDarkMode ? 'text-zinc-100' : 'text-zinc-900'}`}>
-            {APP_NAME}
-          </h1>
+          {/* Logo and Brand Name */}
+          <div className="flex items-center justify-center gap-2 mb-3">
+            {/* Dotted concentric circles icon */}
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Outer circle - dotted */}
+              <circle cx="10" cy="10" r="8.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+              {/* Middle circle - dotted */}
+              <circle cx="10" cy="10" r="5.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+              {/* Inner circle - dotted */}
+              <circle cx="10" cy="10" r="2.5" stroke={isDarkMode ? "#FCD34D" : "#B45309"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+              {/* Center dot - solid */}
+              <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#FCD34D" : "#B45309"} />
+            </svg>
+
+            {/* Brand name with gradient - matching Header */}
+            <div className="flex items-center text-[24px] leading-none">
+              <span className={`font-serif font-semibold tracking-wider bg-clip-text text-transparent bg-gradient-to-br ${
+                isDarkMode
+                  ? 'from-[#FCD34D] via-[#EDEDED] to-[#999999]'
+                  : 'from-[#B45309] via-[#4B5563] to-[#1F2937]'
+              }`}>
+                Resonance
+              </span>
+              <span className={`ml-1 font-serif italic ${
+                isDarkMode
+                  ? 'text-zinc-300 font-light'
+                  : 'text-gray-800 font-medium'
+              }`}>
+                Lab.
+              </span>
+            </div>
+          </div>
+
           <p className={`text-sm ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
             {isRegister ? 'Create your account' : 'Sign in to continue'}
           </p>

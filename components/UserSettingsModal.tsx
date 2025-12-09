@@ -258,7 +258,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           {/* Email (Read-only) */}
           <div>
             <label
-              className={`block text-sm font-medium mb-2 ${
+              className={`block text-xs font-medium mb-2 ${
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
@@ -278,7 +278,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           {/* Display Name */}
           <div>
             <label
-              className={`block text-sm font-medium mb-2 ${
+              className={`block text-xs font-medium mb-2 ${
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
@@ -300,7 +300,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           {/* Avatar Section */}
           <div>
             <label
-              className={`block text-sm font-medium mb-2 ${
+              className={`block text-xs font-medium mb-2 ${
                 isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
               }`}
             >
@@ -318,12 +318,12 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               />
               <label
                 htmlFor="avatar-upload"
-                className={`flex-1 px-4 py-2 rounded-lg border text-center cursor-pointer transition-colors text-sm ${
+                className={`flex-1 px-4 py-2 rounded-lg text-center cursor-pointer transition-all text-sm shadow-md hover:shadow-lg active:shadow-sm ${
                   isUploading ? 'opacity-50 cursor-not-allowed' : ''
                 } ${
                   isDarkMode
-                    ? 'bg-[#FCD34D]/20 border-[#FCD34D]/30 text-[#FCD34D] hover:bg-[#FCD34D]/30'
-                    : 'bg-[#B45309]/20 border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
+                    ? 'bg-[#FCD34D]/20 text-[#FCD34D] hover:bg-[#FCD34D]/30'
+                    : 'bg-[#B45309]/20 text-[#B45309] hover:bg-[#B45309]/30'
                 }`}
               >
                 {isUploading ? t.uploading : t.uploadImage}
@@ -350,7 +350,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               }`}
             />
             <p
-              className={`text-sm mt-1 ${
+              className={`text-xs mt-1 ${
                 isDarkMode ? 'text-zinc-500' : 'text-zinc-500'
               }`}
             >
@@ -366,7 +366,7 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
               }`}
             >
               <p
-                className={`text-sm font-medium mb-2 ${
+                className={`text-xs font-medium mb-2 ${
                   isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
@@ -431,14 +431,14 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
             <button
               onClick={handleSave}
               disabled={isLoading || isUploading}
-              className={`flex-1 px-4 py-2 rounded-lg transition-colors text-sm ${
+              className={`flex-1 px-4 py-2 rounded-lg transition-all text-sm shadow-md hover:shadow-lg active:shadow-sm ${
                 (isLoading || isUploading)
                   ? 'opacity-50 cursor-not-allowed'
                   : ''
               } ${
                 isDarkMode
-                  ? 'bg-[#FCD34D]/20 border border-[#FCD34D]/30 text-[#FCD34D] hover:bg-[#FCD34D]/30'
-                  : 'bg-[#B45309]/20 border border-[#B45309]/30 text-[#B45309] hover:bg-[#B45309]/30'
+                  ? 'bg-[#FCD34D]/20 text-[#FCD34D] hover:bg-[#FCD34D]/30'
+                  : 'bg-[#B45309]/20 text-[#B45309] hover:bg-[#B45309]/30'
               }`}
             >
               {isLoading ? t.saving : isUploading ? t.uploading : t.save}
@@ -449,10 +449,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           <div className="pt-4 mt-4 border-t border-opacity-20" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#E5E7EB' }}>
             <button
               onClick={handleSignOut}
-              className={`w-full px-4 py-2 rounded-lg border transition-colors text-sm ${
+              className={`w-full px-4 py-2 rounded-lg transition-all text-sm shadow-md hover:shadow-lg active:shadow-sm ${
                 isDarkMode
-                  ? 'bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20'
-                  : 'bg-red-50 border-red-200 text-red-600 hover:bg-red-100'
+                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                  : 'bg-red-50 text-red-600 hover:bg-red-100'
               }`}
             >
               {t.signOut}

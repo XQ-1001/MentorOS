@@ -1,12 +1,39 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ResonanceWaveProps {
   isDarkMode?: boolean;
+  language?: 'en' | 'zh';
 }
 
-export const ResonanceWave: React.FC<ResonanceWaveProps> = ({ isDarkMode = true }) => {
+const LOADING_PHRASES = [
+  'Receiving signal...',
+  'Filtering noise...',
+  'Seeking truth...',
+  'Distilling essence...',
+  'Initiating resonance...',
+];
+
+export const ResonanceWave: React.FC<ResonanceWaveProps> = ({ isDarkMode = true, language = 'en' }) => {
+  const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPhraseIndex((prev) => {
+        // Stop at the last phrase (Resonating...) instead of looping
+        if (prev < LOADING_PHRASES.length - 1) {
+          return prev + 1;
+        }
+        return prev; // Stay on the last phrase
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const displayText = LOADING_PHRASES[currentPhraseIndex];
+
   return (
     <div className="flex flex-col gap-2 mb-8 w-full">
       {/* RESONANCE label */}
@@ -50,6 +77,11 @@ export const ResonanceWave: React.FC<ResonanceWaveProps> = ({ isDarkMode = true 
           {/* Center dot - solid */}
           <circle cx="24" cy="24" r="2" fill={isDarkMode ? "#D4B483" : "#854D0E"} className="center-dot" />
         </svg>
+      </div>
+
+      {/* Rotating status text */}
+      <div className={`ml-6 text-sm transition-opacity duration-300 ${isDarkMode ? 'text-[#D4B483]/70' : 'text-[#854D0E]/70'}`}>
+        {displayText}
       </div>
 
       {/* Divider line */}
