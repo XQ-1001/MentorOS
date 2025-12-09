@@ -70,7 +70,7 @@ Note: Prisma client generation runs automatically on `npm install` (postinstall)
   - SSE format: `data: {content}` followed by `data: [DONE]`
 - **Title Generation**: AI-powered conversation titles
   - API route (`app/api/generate-title/route.ts`) generates concise 10-char titles
-  - Uses Claude 3.5 Haiku by default (fast, reliable, no reasoning mode issues)
+  - Uses Gemini 2.0 Flash (google/gemini-2.0-flash-001) by default - stable production model
   - Fallback to keyword extraction if API fails
   - Configurable via `OPENROUTER_TITLE_MODEL` environment variable
 - **Language Detection**: Auto-detects output language from user input
@@ -135,10 +135,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Anonymous key
 DATABASE_URL=                     # PostgreSQL connection string (use pooler URL)
 
 # OpenRouter API (AI)
-OPENROUTER_API_KEY=              # API key
+OPENROUTER_API_KEY=              # API key for main chat
 OPENROUTER_MODEL=                # Model ID for main chat (default: google/gemini-3-pro-preview)
 OPENROUTER_BASE_URL=             # API base URL (default: https://openrouter.ai/api/v1)
-OPENROUTER_TITLE_MODEL=          # (Optional) Model for title generation (default: anthropic/claude-3.5-haiku)
+OPENROUTER_TITLE_MODEL=          # (Optional) Model for title generation (default: google/gemini-2.0-flash-001)
+OPENROUTER_TITLE_API_KEY=        # (Optional) API key for title generation (if different from main key)
 ```
 
 See `docs/setup/SUPABASE_SETUP.md` and `docs/setup/VERCEL_SETUP.md` for detailed configuration guides.

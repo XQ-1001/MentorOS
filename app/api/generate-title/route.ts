@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-// Use Claude Haiku for title generation - fast, reliable, no reasoning mode issues
-const TITLE_MODEL = process.env.OPENROUTER_TITLE_MODEL || 'anthropic/claude-3.5-haiku';
+const OPENROUTER_TITLE_API_KEY = process.env.OPENROUTER_TITLE_API_KEY || '';
+// Use Gemini 2.0 Flash for title generation - stable production model
+const TITLE_MODEL = process.env.OPENROUTER_TITLE_MODEL || 'google/gemini-2.0-flash-001';
 const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
 
 export async function POST(req: NextRequest) {
@@ -13,46 +13,46 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User message is required' }, { status: 400 });
     }
 
-    // Enhanced prompt focusing on topic extraction
+    // Optimized prompt for Gemini 2.0 Flash - clear, direct instructions
     const systemPrompt = language === 'zh'
-      ? `你是标题总结专家。你的任务是从用户的问题或陈述中，提取最核心的主题，生成简洁标题。
+      ? `从用户输入中提取核心主题，生成10字以内的简短标题。
 
-核心原则：
-1. 识别用户真正关心的核心问题或主题
-2. 使用最关键的名词概括，10字以内
-3. 只输出标题本身，不要任何标点符号或解释
+要求：
+- 只输出标题，不要解释、标点、前缀
+- 抓住核心关键词
+- 简洁凝练
 
 示例：
-用户："现在很多小朋友沉迷于手机、iPad中的游戏、短视频，甚至新加坡开始禁止学生在学校使用手机。这个问题你怎么看？"
-标题：青少年手机成瘾
+输入："现在很多小朋友沉迷于手机、iPad中的游戏、短视频，甚至新加坡开始禁止学生在学校使用手机。这个问题你怎么看？"
+输出：青少年手机成瘾
 
-用户："如何提升产品的用户体验？"
-标题：产品体验优化
+输入："如何提升产品的用户体验？"
+输出：产品体验优化
 
-用户："我想学习Python编程，应该从哪里开始？"
-标题：Python入门
+输入："我想学习Python编程，应该从哪里开始？"
+输出：Python入门
 
-用户："帮我分析一下这个商业模式是否可行"
-标题：商业模式分析`
-      : `You are a title summarization expert. Your task is to extract the core topic from user questions or statements and create a concise title.
+输入："帮我分析一下这个商业模式是否可行"
+输出：商业模式分析`
+      : `Extract the core topic from user input and generate a brief title (max 10 chars).
 
-Core principles:
-1. Identify the real issue or topic the user cares about
-2. Use key nouns to summarize, max 10 characters
-3. Output only the title itself, no punctuation or explanation
+Requirements:
+- Output ONLY the title, no explanation, punctuation, or prefix
+- Capture key keywords
+- Be concise
 
 Examples:
-User: "Many kids are addicted to phone games and videos. What do you think?"
-Title: Kids Screen
+Input: "Many kids are addicted to phone games and videos. What do you think?"
+Output: Kids Screen
 
-User: "How to improve product UX?"
-Title: Improve UX
+Input: "How to improve product UX?"
+Output: Improve UX
 
-User: "I want to learn Python, where to start?"
-Title: Learn Python
+Input: "I want to learn Python, where to start?"
+Output: Learn Python
 
-User: "Analyze this business model for me"
-Title: Model Check`;
+Input: "Analyze this business model for me"
+Output: Model Check`;
 
     console.log('[Generate Title] Calling OpenRouter API:', {
       model: TITLE_MODEL,
@@ -63,7 +63,7 @@ Title: Model Check`;
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_TITLE_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
         'X-Title': 'Resonance - Title Generation',
@@ -78,12 +78,12 @@ Title: Model Check`;
           {
             role: 'user',
             content: language === 'zh'
-              ? `请为这段话生成10字以内的标题：${userMessage}`
-              : `Generate a title (max 10 chars) for: ${userMessage}`
+              ? `输入：${userMessage}\n输出：`
+              : `Input: ${userMessage}\nOutput:`
           }
         ],
-        temperature: 0.3,
-        max_tokens: 30,
+        temperature: 0.1,  // Low temperature for more deterministic title generation
+        max_tokens: 50,    // Short response needed, 10 chars is ~15-20 tokens max
         stream: false
       }),
     });
@@ -97,7 +97,7 @@ Title: Model Check`;
       });
 
       // Fallback with keyword extraction if API fails
-      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter(w => w.length > 0);
+      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter((w: string) => w.length > 0);
       const fallbackTitle = words[0] && words[0].length <= 10
         ? words[0]
         : userMessage.substring(0, 10);
@@ -108,16 +108,32 @@ Title: Model Check`;
     const data = await response.json();
     console.log('[Generate Title] Raw API response:', JSON.stringify(data, null, 2));
 
-    // Extract title from content field
-    let generatedTitle = data.choices?.[0]?.message?.content?.trim() || '';
-    console.log('[Generate Title] Extracted title:', generatedTitle);
+    // Extract title from content or reasoning field (some models use reasoning)
+    const message = data.choices?.[0]?.message;
+    let generatedTitle = (message?.content || message?.reasoning || '').trim();
+    console.log('[Generate Title] Extracted title (raw):', generatedTitle);
 
-    // Clean up the title
-    // Remove common prefixes like "标题：", "Title:", "标题:" etc.
+    // If content came from reasoning field, try to extract the actual title
+    // Reasoning often contains thought process + final answer
+    if (!message?.content && message?.reasoning) {
+      // Look for common patterns: "标题：xxx", "标题是xxx", or the last line
+      const reasoningLines = generatedTitle.split('\n').filter((l: string) => l.trim());
+      const titleMatch = generatedTitle.match(/(?:标题[:：是]?|Title[:：]?)\s*["']?([^"'\n]{1,10})["']?/i);
+      if (titleMatch && titleMatch[1]) {
+        generatedTitle = titleMatch[1].trim();
+      } else if (reasoningLines.length > 0) {
+        // Use the last non-empty line as fallback
+        generatedTitle = reasoningLines[reasoningLines.length - 1].trim();
+      }
+      console.log('[Generate Title] Extracted from reasoning:', generatedTitle);
+    }
+
+    // Clean up the title - remove common prefixes and formatting
     generatedTitle = generatedTitle
-      .replace(/^(标题[:：]|Title[:：]?|title[:：]?)\s*/i, '')
+      .replace(/^(输出[:：]?|标题[:：是]?|Title[:：]?|title[:：]?|Output[:：]?)\s*/i, '')  // Remove common prefixes
       .replace(/^["'「」『』]|["'「」『』]$/g, '')  // Remove quotes
       .replace(/[。！？，、；：,.!?;:]+$/g, '')  // Remove trailing punctuation
+      .split('\n')[0]  // Take only first line if multi-line response
       .trim();
 
     console.log('[Generate Title] Cleaned title:', generatedTitle);
@@ -131,7 +147,7 @@ Title: Model Check`;
     // Fallback if generation failed - extract keywords instead of simple truncation
     if (!generatedTitle) {
       // Try to extract meaningful keywords
-      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter(w => w.length > 0);
+      const words = userMessage.split(/[，。？！、；\s,\.?!;]+/).filter((w: string) => w.length > 0);
       // Take first meaningful segment, prefer nouns/key phrases
       generatedTitle = words[0] && words[0].length <= 10
         ? words[0]
