@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const OPENROUTER_TITLE_API_KEY = process.env.OPENROUTER_TITLE_API_KEY || '';
-// Use Gemini 2.0 Flash for title generation - stable production model
+// Unified API key for all OpenRouter requests
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+// Use Gemini 2.0 Flash for title generation - fast and cost-effective
 const TITLE_MODEL = process.env.OPENROUTER_TITLE_MODEL || 'google/gemini-2.0-flash-001';
 const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
 
@@ -63,7 +64,7 @@ Output: Model Check`;
     const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_TITLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'http://localhost:3000',
         'X-Title': 'Resonance - Title Generation',

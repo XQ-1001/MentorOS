@@ -63,7 +63,12 @@ Note: Prisma client generation runs automatically on `npm install` (postinstall)
 - **System Prompt**: Bilingual Steve Jobs persona defined in `constants.ts`
   - Single unified prompt handles both English and Chinese responses
   - Strict conversational tone requirements (no numbered lists, natural flow)
-  - Full context in `lib/steveJobsContext.ts`
+  - Full context in `lib/steveJobsContext.ts` (~70KB)
+  - **Prompt Caching**: Enabled via OpenRouter `cache_control` mechanism
+    - 5-minute TTL for system prompt caching
+    - 75% cost reduction on cache hits (0.25× original price)
+    - 20-40% latency improvement when cache is hit
+    - See `docs/OPENROUTER_CACHING_IMPLEMENTATION.md` for details
 - **Streaming**: Server-Sent Events for real-time AI responses
   - Client service (`services/geminiService.ts`) manages conversation history
   - API route (`app/api/chat/route.ts`) proxies to OpenRouter with streaming
@@ -135,12 +140,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=   # Anonymous key
 DATABASE_URL=                     # PostgreSQL connection string (use pooler URL)
 
 # OpenRouter API (AI)
-OPENROUTER_API_KEY=              # API key for main chat
+OPENROUTER_API_KEY=              # Unified API key for all AI requests (chat + title generation)
 CHAT_MODEL_ID=                   # [RECOMMENDED] Model ID for chat (default: google/gemini-3-pro-preview)
 OPENROUTER_MODEL=                # [DEPRECATED] Use CHAT_MODEL_ID instead (kept for backward compatibility)
 OPENROUTER_BASE_URL=             # API base URL (default: https://openrouter.ai/api/v1)
 OPENROUTER_TITLE_MODEL=          # (Optional) Model for title generation (default: google/gemini-2.0-flash-001)
-OPENROUTER_TITLE_API_KEY=        # (Optional) API key for title generation (if different from main key)
 ```
 
 See `docs/setup/SUPABASE_SETUP.md` and `docs/setup/VERCEL_SETUP.md` for detailed configuration guides.
@@ -165,6 +169,16 @@ See `docs/setup/SUPABASE_SETUP.md` and `docs/setup/VERCEL_SETUP.md` for detailed
 - Language mixing (code-switching) is intentional and part of the Steve Jobs persona
 - The prompt explicitly prohibits certain formatting (numbered lists, section markers)
 - Full context documentation at `docs/context/STEVE_JOBS_CONTEXT.md`
+
+### OpenRouter Prompt Caching
+- System prompt caching enabled for Gemini models (as of 2025-12-10)
+- Uses `cache_control: { type: 'ephemeral' }` in message content structure
+- 5-minute TTL - cache expires after 5 minutes of inactivity
+- Cache hits reduce latency by 20-40% and costs by 75%
+- Implementation: app/api/chat/route.ts:30-39 uses structured content array format
+- Documentation: `docs/OPENROUTER_CACHING_IMPLEMENTATION.md` has full details
+- Monitor cache effectiveness via OpenRouter Dashboard > Activity > Cached Tokens
+- Important: Only Gemini and Anthropic models require explicit cache_control; OpenAI/Grok cache automatically
 
 ### Path Aliases
 - Use `@/*` for imports (maps to project root)

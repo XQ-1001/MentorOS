@@ -29,7 +29,13 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: systemInstruction
+            content: [
+              {
+                type: 'text',
+                text: systemInstruction,
+                cache_control: { type: 'ephemeral' }
+              }
+            ]
           },
           ...messages
         ],
