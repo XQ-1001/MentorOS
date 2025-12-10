@@ -20,9 +20,24 @@
 ### 1. OpenRouter API（AI 功能）
 ```
 OPENROUTER_API_KEY=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
-OPENROUTER_MODEL=google/gemini-3-pro-preview
+CHAT_MODEL_ID=google/gemini-3-pro-preview
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 ```
+
+**关于 CHAT_MODEL_ID（重要）**:
+- ✅ **推荐使用**: `CHAT_MODEL_ID` 是新的标准环境变量名
+- 🔄 **向后兼容**: 如果你使用旧的 `OPENROUTER_MODEL`，系统会自动回退使用它
+- 🎯 **优先级**: `CHAT_MODEL_ID` > `OPENROUTER_MODEL` > 默认值（`google/gemini-3-pro-preview`）
+- 📝 **可选模型**:
+  - `google/gemini-3-pro-preview` - Gemini 3 Pro（默认，强大但较慢）
+  - `google/gemini-2.0-flash-001` - Gemini 2.0 Flash（快速且经济）
+  - `anthropic/claude-3-5-sonnet` - Claude 3.5 Sonnet
+  - `openai/gpt-4o` - GPT-4o
+
+**迁移建议**:
+- 如果你之前使用 `OPENROUTER_MODEL`，可以保持不变（仍然有效）
+- 新部署建议直接使用 `CHAT_MODEL_ID`
+- 未来只需在 Vercel 修改 `CHAT_MODEL_ID` 的值即可切换模型，无需修改代码
 
 ### 2. Supabase 数据库
 ```
@@ -82,6 +97,55 @@ vercel env add NEXTAUTH_URL
 vercel env add NEXTAUTH_SECRET
 # ... 添加其他变量
 ```
+
+## 如何在 Vercel 切换 AI 模型
+
+### 场景：无需修改代码即可切换模型
+
+假设你想从 Gemini 3 Pro 切换到 Gemini 2.0 Flash（更快更便宜）：
+
+#### 步骤 1: 在 Vercel Dashboard 修改环境变量
+
+1. 登录 [Vercel Dashboard](https://vercel.com/dashboard)
+2. 选择你的项目
+3. 进入 **Settings** → **Environment Variables**
+4. 找到 `CHAT_MODEL_ID` 变量
+5. 点击 **Edit**
+6. 修改值为 `google/gemini-2.0-flash-001`
+7. 选择应用到哪些环境（Production / Preview / Development）
+8. 点击 **Save**
+
+#### 步骤 2: 触发重新部署
+
+环境变量修改后，需要重新部署才能生效：
+
+**选项 A**: 推送代码（推荐）
+```bash
+git commit --allow-empty -m "Trigger redeploy for model change"
+git push origin main
+```
+
+**选项 B**: Vercel Dashboard 手动触发
+1. 进入 **Deployments** 标签
+2. 点击最新部署的 **⋯** 菜单
+3. 选择 **Redeploy**
+
+#### 步骤 3: 验证
+
+部署完成后，访问你的应用并发送消息，检查响应速度和质量是否符合预期。
+
+### 常用模型对比
+
+| 模型 ID | 特点 | 适用场景 |
+|---------|------|---------|
+| `google/gemini-3-pro-preview` | 最强大，响应慢，成本高 | 需要最佳质量的对话 |
+| `google/gemini-2.0-flash-001` | 快速，成本低，质量好 | 大多数日常对话（推荐） |
+| `anthropic/claude-3-5-sonnet` | 平衡性能和成本 | 需要 Claude 风格的回复 |
+| `openai/gpt-4o` | OpenAI 最新模型 | 需要 GPT-4 级别的能力 |
+
+**💡 提示**: 你可以为不同的环境（Production / Preview）配置不同的模型：
+- Production: 使用稳定的 `google/gemini-3-pro-preview`
+- Preview: 使用更快的 `google/gemini-2.0-flash-001` 进行测试
 
 ## 重新部署
 

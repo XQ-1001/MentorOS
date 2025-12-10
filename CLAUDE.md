@@ -136,7 +136,8 @@ DATABASE_URL=                     # PostgreSQL connection string (use pooler URL
 
 # OpenRouter API (AI)
 OPENROUTER_API_KEY=              # API key for main chat
-OPENROUTER_MODEL=                # Model ID for main chat (default: google/gemini-3-pro-preview)
+CHAT_MODEL_ID=                   # [RECOMMENDED] Model ID for chat (default: google/gemini-3-pro-preview)
+OPENROUTER_MODEL=                # [DEPRECATED] Use CHAT_MODEL_ID instead (kept for backward compatibility)
 OPENROUTER_BASE_URL=             # API base URL (default: https://openrouter.ai/api/v1)
 OPENROUTER_TITLE_MODEL=          # (Optional) Model for title generation (default: google/gemini-2.0-flash-001)
 OPENROUTER_TITLE_API_KEY=        # (Optional) API key for title generation (if different from main key)

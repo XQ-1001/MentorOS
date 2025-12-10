@@ -176,7 +176,7 @@ mentor-os_-jobs/
 ```env
 # OpenRouter API (AI 功能)
 OPENROUTER_API_KEY=your-api-key
-OPENROUTER_MODEL=google/gemini-3-pro-preview
+CHAT_MODEL_ID=google/gemini-3-pro-preview
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 
 # Supabase 数据库

@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
-const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview';
+// Priority: CHAT_MODEL_ID (recommended) > OPENROUTER_MODEL (backward compatibility) > default
+const CHAT_MODEL_ID = process.env.CHAT_MODEL_ID || process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview';
 const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1';
 
 export async function POST(req: NextRequest) {
@@ -10,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     console.log('API Route - OpenRouter Config:', {
       url: `${OPENROUTER_BASE_URL}/chat/completions`,
-      model: OPENROUTER_MODEL,
+      model: CHAT_MODEL_ID,
       hasApiKey: !!OPENROUTER_API_KEY,
       apiKeyLength: OPENROUTER_API_KEY.length,
     });
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
         'X-Title': 'Resonance - Jobs Edition',
       },
       body: JSON.stringify({
-        model: OPENROUTER_MODEL,
+        model: CHAT_MODEL_ID,
         messages: [
           {
             role: 'system',
