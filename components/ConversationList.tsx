@@ -44,6 +44,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [exportingConversation, setExportingConversation] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   const t = {
     conversations: language === 'zh' ? '对话列表' : 'Conversations',
@@ -56,6 +58,9 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     rename: language === 'zh' ? '重命名' : 'Rename',
     delete: language === 'zh' ? '删除' : 'Delete',
     export: language === 'zh' ? '导出' : 'Export',
+    loadError: language === 'zh' ? '加载对话失败' : 'Failed to load conversations',
+    retrying: language === 'zh' ? '正在重试...' : 'Retrying...',
+    retry: language === 'zh' ? '重试' : 'Retry',
   };
 
   useEffect(() => {
@@ -80,17 +85,46 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     }
   }, [contextMenu]);
 
-  const loadConversations = async () => {
+  const loadConversations = async (attempt = 0) => {
+    const MAX_RETRIES = 3;
+
     try {
+      setLoadError(null);
+
       const response = await fetch('/api/conversations');
-      if (response.ok) {
-        const data = await response.json();
-        setConversations(data.conversations || []);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      setConversations(data.conversations || []);
+      setRetryCount(0); // Reset retry count on success
+      setLoadError(null);
+
     } catch (error) {
-      console.error('Failed to load conversations:', error);
+      console.error(`Failed to load conversations (attempt ${attempt + 1}/${MAX_RETRIES + 1}):`, error);
+
+      // Retry with exponential backoff
+      if (attempt < MAX_RETRIES) {
+        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+        console.log(`Retrying in ${delay / 1000}s...`);
+
+        setRetryCount(attempt + 1);
+        setLoadError(t.retrying);
+
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return loadConversations(attempt + 1);
+      } else {
+        // All retries exhausted
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        setLoadError(`${t.loadError}: ${errorMessage}`);
+        setRetryCount(0);
+      }
     } finally {
-      setIsLoading(false);
+      if (attempt === 0 || attempt >= MAX_RETRIES) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -290,6 +324,31 @@ export const ConversationList: React.FC<ConversationListProps> = ({
             {isLoading ? (
               <div className={`text-center py-8 text-sm ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
                 Loading...
+              </div>
+            ) : loadError ? (
+              <div className="flex flex-col items-center justify-center py-8 px-4">
+                <div className={`text-center text-sm mb-4 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  {loadError}
+                </div>
+                {retryCount > 0 ? (
+                  <div className={`text-xs ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                    {t.retrying} ({retryCount}/3)
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setIsLoading(true);
+                      loadConversations();
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isDarkMode
+                        ? 'bg-[#1C1C1E] text-[#EDEDED] hover:bg-[#2C2C2E] border border-[#2C2C2E]'
+                        : 'bg-white text-zinc-900 hover:bg-zinc-100 border border-zinc-300'
+                    }`}
+                  >
+                    {t.retry}
+                  </button>
+                )}
               </div>
             ) : conversations.length === 0 ? (
               <div className={`text-center py-8 text-sm ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { MessageBubble } from '@/components/MessageBubble';
 import { InputArea } from '@/components/InputArea';
 import { ConversationList } from '@/components/ConversationList';
 import { ResonanceWave } from '@/components/ResonanceWave';
-import { sendMessageStream, initializeChat } from '@/services/geminiService';
+import { sendMessageStream, initializeChat, setConversationHistory } from '@/services/geminiService';
 import { Message, Role, Language } from '@/types';
 import { SYSTEM_PROMPTS } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
@@ -14,6 +14,7 @@ import { determineOutputLanguage } from '@/lib/languageDetection';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { useProfile } from '@/lib/hooks/useProfile';
+import { Virtuoso } from 'react-virtuoso';
 
 export default function Home() {
   // --- State: Theme ---
@@ -32,9 +33,12 @@ export default function Home() {
   // --- State: Chat ---
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [hasInitialized, setHasInitialized] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  // Client-side cache to avoid re-fetching already loaded conversations
+  const conversationCache = React.useRef<Map<string, Message[]>>(new Map());
+  // AbortController for canceling ongoing requests
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // --- State: User ---
   const supabase = createClient();
@@ -91,14 +95,6 @@ export default function Home() {
     setHasInitialized(true);
   }, []);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   // Create new conversation if needed
   const ensureConversation = async (title?: string) => {
     if (currentConversationId) return currentConversationId;
@@ -144,6 +140,10 @@ export default function Home() {
   };
 
   const handleSendMessage = async (text: string) => {
+    // Create AbortController for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     const userMessage: Message = {
       id: uuidv4(),
       role: Role.USER,
@@ -237,7 +237,7 @@ export default function Home() {
                 : msg
             )
         );
-      });
+      }, abortController.signal);
 
       // Save model response to database after streaming completes
       if (fullResponse && conversationId) {
@@ -245,6 +245,14 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Failed to generate response", error);
+
+      // Check if it was aborted by user
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Request aborted by user');
+        // Don't show error message for user-initiated abort
+        return;
+      }
+
       const errorMsg = language === 'zh'
         ? "连接断了。去修好它。"
         : "The connection is broken. Fix it.";
@@ -264,13 +272,33 @@ export default function Home() {
       }
     } finally {
         setIsLoading(false);
-        setMessages((prev) =>
-            prev.map((msg) =>
-                msg.id === modelMessageId
-                ? { ...msg, isStreaming: false }
-                : msg
-            )
-        );
+        abortControllerRef.current = null; // Clear the ref
+        setMessages((prev) => {
+          const updatedMessages = prev.map((msg) =>
+            msg.id === modelMessageId
+              ? { ...msg, isStreaming: false }
+              : msg
+          );
+
+          // Update cache with latest messages after sending
+          if (conversationId) {
+            conversationCache.current.set(conversationId, updatedMessages);
+          }
+
+          return updatedMessages;
+        });
+    }
+  };
+
+  const handleAbortMessage = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+
+      // Remove the last two messages (user message and empty AI message)
+      setMessages((prev) => prev.slice(0, -2));
+
+      setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -286,6 +314,31 @@ export default function Home() {
 
   const handleConversationSelect = async (id: string) => {
     try {
+      // Check cache first - instant load for already-viewed conversations
+      const cachedMessages = conversationCache.current.get(id);
+
+      if (cachedMessages) {
+        console.log(`[CACHE HIT] Loading conversation ${id} from cache (${cachedMessages.length} messages)`);
+
+        // Update current conversation ID
+        setCurrentConversationId(id);
+        setMessages(cachedMessages);
+
+        // Re-initialize chat with bilingual prompt
+        const prompt = SYSTEM_PROMPTS.zh;
+        initializeChat(prompt);
+
+        // Restore conversation history
+        const conversationHistory = cachedMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        setConversationHistory(conversationHistory);
+        return; // Early return - no API call needed
+      }
+
+      // Cache miss - fetch from API
+      console.log(`[CACHE MISS] Fetching conversation ${id} from API`);
       const res = await fetch(`/api/conversations/${id}`);
       if (res.ok) {
         const { conversation } = await res.json();
@@ -300,11 +353,21 @@ export default function Home() {
           content: msg.content,
         }));
 
+        // Store in cache for instant future access
+        conversationCache.current.set(id, loadedMessages);
+
         setMessages(loadedMessages);
 
         // Re-initialize chat with bilingual prompt
-        const prompt = SYSTEM_PROMPTS.zh; // Use the same bilingual prompt
+        const prompt = SYSTEM_PROMPTS.zh;
         initializeChat(prompt);
+
+        // Restore conversation history
+        const conversationHistory = loadedMessages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
+        setConversationHistory(conversationHistory);
       }
     } catch (error) {
       console.error('Failed to load conversation:', error);
@@ -348,24 +411,35 @@ export default function Home() {
       />
 
       <div className="flex-1 lg:ml-64">
-        <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-32">
-          {messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              message={msg}
-              isDarkMode={isDarkMode}
-              userName={profile?.name || user?.email}
-              userAvatar={profile?.avatar_url}
-              userEmail={user?.email}
-            />
-          ))}
-          {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' && (
-            <ResonanceWave isDarkMode={isDarkMode} language={language} />
-          )}
-          <div ref={messagesEndRef} />
+        <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-1" style={{ height: 'calc(100vh - 7rem - 5rem)' }}>
+          <Virtuoso
+            data={messages}
+            followOutput="smooth"
+            alignToBottom={messages.length > 1}
+            itemContent={(index, msg) => (
+              <MessageBubble
+                key={msg.id}
+                message={msg}
+                isDarkMode={isDarkMode}
+                userName={profile?.name || user?.email}
+                userAvatar={profile?.avatar_url}
+                userEmail={user?.email}
+              />
+            )}
+            components={{
+              Footer: () => (
+                <div>
+                  {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' ? (
+                    <ResonanceWave isDarkMode={isDarkMode} language={language} />
+                  ) : null}
+                  <div style={{ height: '20px' }} />
+                </div>
+              ),
+            }}
+          />
         </main>
 
-        <InputArea onSend={handleSendMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
+        <InputArea onSend={handleSendMessage} onAbort={handleAbortMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
       </div>
     </div>
   );
