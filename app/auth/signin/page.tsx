@@ -91,11 +91,11 @@ export default function SignIn() {
         {/* Header */}
         <div className="text-center mb-8">
           {/* Logo and Brand Name */}
-          <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="flex items-center justify-center gap-3 mb-3">
             {/* Dotted concentric circles icon */}
             <svg
-              width="24"
-              height="24"
+              width="40"
+              height="40"
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -111,7 +111,7 @@ export default function SignIn() {
             </svg>
 
             {/* Brand name with gradient - matching Header */}
-            <div className="flex items-center text-[24px] leading-none">
+            <div className="flex items-center text-[36px] leading-none">
               <span className={`font-serif font-semibold tracking-wider bg-clip-text text-transparent bg-gradient-to-br ${
                 isDarkMode
                   ? 'from-[#FCD34D] via-[#EDEDED] to-[#999999]'
@@ -128,10 +128,6 @@ export default function SignIn() {
               </span>
             </div>
           </div>
-
-          <p className={`text-sm ${isDarkMode ? 'text-zinc-400' : 'text-zinc-600'}`}>
-            {isRegister ? 'Create your account' : 'Sign in to continue'}
-          </p>
         </div>
 
         {/* Error Message */}

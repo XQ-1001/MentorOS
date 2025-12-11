@@ -360,43 +360,45 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
 
           {/* Preview */}
           {(displayName || avatarUrl) && (
-            <div
-              className={`p-4 rounded-lg border ${
-                isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'
-              }`}
-            >
-              <p
-                className={`text-xs font-medium mb-2 ${
+            <div>
+              <label
+                className={`block text-xs font-medium mb-2 ${
                   isDarkMode ? 'text-zinc-400' : 'text-zinc-600'
                 }`}
               >
                 {t.preview}
-              </p>
-              <div className="flex items-center gap-3">
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt="Avatar preview"
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                ) : (
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'
+              </label>
+              <div
+                className={`p-4 rounded-lg border ${
+                  isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar preview"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'
+                      }`}
+                    >
+                      <span className="text-sm font-medium">
+                        {displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  <span
+                    className={`text-sm ${
+                      isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'
                     }`}
                   >
-                    <span className="text-sm font-medium">
-                      {displayName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                )}
-                <span
-                  className={`text-sm ${
-                    isDarkMode ? 'text-[#EDEDED]' : 'text-zinc-900'
-                  }`}
-                >
-                  {displayName || user.email}
-                </span>
+                    {displayName || user.email}
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -449,10 +451,10 @@ export const UserSettingsModal: React.FC<UserSettingsModalProps> = ({
           <div className="pt-4 mt-4 border-t border-opacity-20" style={{ borderColor: isDarkMode ? '#2C2C2E' : '#E5E7EB' }}>
             <button
               onClick={handleSignOut}
-              className={`w-full px-4 py-2 rounded-lg transition-all text-sm shadow-md hover:shadow-lg active:shadow-sm ${
+              className={`w-full px-4 py-2 rounded-lg border transition-colors text-sm ${
                 isDarkMode
-                  ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20'
-                  : 'bg-red-50 text-red-600 hover:bg-red-100'
+                  ? 'bg-transparent border-[#2C2C2E] text-[#EDEDED] hover:bg-[#1C1C1E]'
+                  : 'bg-zinc-100 border-zinc-300 text-zinc-700 hover:bg-zinc-200'
               }`}
             >
               {t.signOut}

@@ -17,8 +17,13 @@ export async function GET() {
       orderBy: { updatedAt: 'desc' },
       include: {
         messages: {
+          select: {
+            id: true,
+            role: true,
+            content: true,
+            createdAt: true,
+          },
           orderBy: { createdAt: 'asc' },
-          take: 1,
         },
       },
     });

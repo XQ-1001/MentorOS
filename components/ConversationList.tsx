@@ -19,8 +19,9 @@ interface Conversation {
 
 interface ConversationListProps {
   currentConversationId: string | null;
-  onConversationSelect: (id: string) => void;
+  onConversationSelect: (id: string, keepSearchQuery?: string) => void;
   onNewConversation: () => void;
+  onSearchPreviewHover?: (conversationId: string | null, query: string) => void;
   language: Language;
   isDarkMode: boolean;
 }
@@ -29,6 +30,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   currentConversationId,
   onConversationSelect,
   onNewConversation,
+  onSearchPreviewHover,
   language,
   isDarkMode,
 }) => {
@@ -46,10 +48,16 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   const [exportingConversation, setExportingConversation] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
 
   const t = {
     conversations: language === 'zh' ? '对话列表' : 'Conversations',
     newChat: language === 'zh' ? '新对话' : 'New Chat',
+    searchConversations: language === 'zh' ? '搜索对话' : 'Search conversations',
+    searchPlaceholder: language === 'zh' ? '搜索对话...' : 'Search...',
+    searchResults: language === 'zh' ? '搜索结果' : 'Search Results',
+    noSearchResults: language === 'zh' ? '未找到匹配的对话' : 'No matching conversations',
     today: language === 'zh' ? '今天' : 'Today',
     yesterday: language === 'zh' ? '昨天' : 'Yesterday',
     lastWeek: language === 'zh' ? '过去7天' : 'Last 7 Days',
@@ -217,6 +225,39 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     return t.newChat;
   };
 
+  const searchConversations = (query: string): Conversation[] => {
+    if (!query.trim()) return [];
+
+    const lowerQuery = query.toLowerCase();
+    return conversations.filter((conv) => {
+      // Search in title
+      const title = getConversationTitle(conv).toLowerCase();
+      if (title.includes(lowerQuery)) return true;
+
+      // Search in message content
+      if (conv.messages && conv.messages.length > 0) {
+        return conv.messages.some((msg) =>
+          msg.content.toLowerCase().includes(lowerQuery)
+        );
+      }
+
+      return false;
+    });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setIsSearching(value.trim().length > 0);
+  };
+
+  const handleSearchClear = () => {
+    setSearchQuery('');
+    setIsSearching(false);
+    // Notify parent to clear search highlighting
+    onSearchPreviewHover?.(null, '');
+  };
+
   const groupConversationsByDate = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -317,6 +358,46 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               </svg>
               <span className="text-sm font-medium">{t.newChat}</span>
             </button>
+
+            {/* Search Input */}
+            <div className="relative mt-2">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                isDarkMode
+                  ? 'bg-[#1C1C1E] border-[#2C2C2E] focus-within:border-[#D4B483]/50'
+                  : 'bg-white border-zinc-300 focus-within:border-[#854D0E]/50'
+              }`}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}>
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  placeholder={t.searchPlaceholder}
+                  className={`flex-1 bg-transparent outline-none text-sm ${
+                    isDarkMode
+                      ? 'text-[#EDEDED] placeholder-zinc-600'
+                      : 'text-zinc-900 placeholder-zinc-400'
+                  }`}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={handleSearchClear}
+                    className={`flex-shrink-0 ${
+                      isDarkMode
+                        ? 'text-zinc-500 hover:text-zinc-300'
+                        : 'text-zinc-400 hover:text-zinc-600'
+                    }`}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Conversation List */}
@@ -354,7 +435,106 @@ export const ConversationList: React.FC<ConversationListProps> = ({
               <div className={`text-center py-8 text-sm ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
                 {t.noConversations}
               </div>
+            ) : isSearching ? (
+              // Search Results
+              <>
+                {(() => {
+                  const searchResults = searchConversations(searchQuery);
+
+                  if (searchResults.length === 0) {
+                    return (
+                      <div className={`text-center py-8 text-sm ${isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                        {t.noSearchResults}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div>
+                      <div
+                        className={`text-xs font-medium px-2 py-1 mb-2 ${
+                          isDarkMode ? 'text-zinc-500' : 'text-zinc-400'
+                        }`}
+                      >
+                        {t.searchResults} ({searchResults.length})
+                      </div>
+                      {searchResults.map((conv) => (
+                        <div
+                          key={conv.id}
+                          className="relative group"
+                          onMouseEnter={() => onSearchPreviewHover?.(conv.id, searchQuery)}
+                          onMouseLeave={() => onSearchPreviewHover?.(null, searchQuery)}
+                        >
+                          {isRenaming === conv.id ? (
+                            <input
+                              type="text"
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onBlur={() => handleRenameSubmit(conv.id)}
+                              onKeyDown={(e) => handleRenameKeyDown(e, conv.id)}
+                              className={`w-full px-3 py-2 rounded-lg mb-1 text-sm border ${
+                                isDarkMode
+                                  ? 'bg-zinc-800 text-zinc-100 border-zinc-600'
+                                  : 'bg-white text-zinc-900 border-zinc-300'
+                              }`}
+                              autoFocus
+                            />
+                          ) : (
+                            <div
+                              className={`flex items-center gap-1 rounded-lg mb-1 transition-colors ${
+                                currentConversationId === conv.id
+                                  ? isDarkMode
+                                    ? 'bg-zinc-800'
+                                    : 'bg-zinc-200'
+                                  : isDarkMode
+                                  ? 'hover:bg-zinc-900'
+                                  : 'hover:bg-zinc-100'
+                              }`}
+                            >
+                              <button
+                                onClick={() => {
+                                  // Exit preview mode but keep searchQuery for highlighting
+                                  onSearchPreviewHover?.(null, searchQuery);
+                                  // Select the conversation with search query
+                                  onConversationSelect(conv.id, searchQuery);
+                                }}
+                                className={`flex-1 text-left px-3 py-2 text-sm min-w-0 ${
+                                  currentConversationId === conv.id
+                                    ? isDarkMode
+                                      ? 'text-zinc-100'
+                                      : 'text-zinc-900'
+                                    : isDarkMode
+                                    ? 'text-zinc-300'
+                                    : 'text-zinc-700'
+                                }`}
+                              >
+                                <div className="truncate">{getConversationTitle(conv)}</div>
+                              </button>
+                              <button
+                                onClick={(e) => handleMenuToggle(e, conv.id)}
+                                className={`flex-shrink-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity ${
+                                  isDarkMode
+                                    ? 'text-zinc-400 hover:text-zinc-200'
+                                    : 'text-zinc-500 hover:text-zinc-700'
+                                }`}
+                                aria-label="More options"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                  <circle cx="12" cy="5" r="2"></circle>
+                                  <circle cx="12" cy="12" r="2"></circle>
+                                  <circle cx="12" cy="19" r="2"></circle>
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </>
             ) : (
+              // Normal grouped conversation list
               <>
                 {Object.entries(groupedConversations).map(
                   ([period, convs]) =>

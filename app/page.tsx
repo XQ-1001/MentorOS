@@ -39,6 +39,11 @@ export default function Home() {
   const conversationCache = React.useRef<Map<string, Message[]>>(new Map());
   // AbortController for canceling ongoing requests
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  // Search preview state
+  const [previewConversationId, setPreviewConversationId] = useState<string | null>(null);
+  const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const previewTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   // --- State: User ---
   const supabase = createClient();
@@ -312,7 +317,22 @@ export default function Home() {
     setIsDarkMode(!isDarkMode);
   };
 
-  const handleConversationSelect = async (id: string) => {
+  const handleConversationSelect = async (id: string, keepSearchQuery?: string) => {
+    // Clear preview state
+    setPreviewConversationId(null);
+    setPreviewMessages([]);
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+      previewTimeoutRef.current = null;
+    }
+
+    // Manage search query: keep it if passed from search results, otherwise clear when switching conversations
+    if (keepSearchQuery) {
+      setSearchQuery(keepSearchQuery);
+    } else if (id !== currentConversationId) {
+      setSearchQuery('');
+    }
+
     try {
       // Check cache first - instant load for already-viewed conversations
       const cachedMessages = conversationCache.current.get(id);
@@ -375,6 +395,15 @@ export default function Home() {
   };
 
   const handleNewConversation = () => {
+    // Clear preview state immediately to exit preview mode
+    setPreviewConversationId(null);
+    setPreviewMessages([]);
+    setSearchQuery('');
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+      previewTimeoutRef.current = null;
+    }
+
     // Reset conversation
     setCurrentConversationId(null);
 
@@ -394,6 +423,84 @@ export default function Home() {
     initializeChat(prompt);
   };
 
+  const handleSearchPreviewHover = async (conversationId: string | null, query: string) => {
+    // Clear any existing timeout
+    if (previewTimeoutRef.current) {
+      clearTimeout(previewTimeoutRef.current);
+      previewTimeoutRef.current = null;
+    }
+
+    if (!conversationId) {
+      setPreviewConversationId(null);
+      setPreviewMessages([]);
+      // Only clear searchQuery if query parameter is empty
+      if (!query) {
+        setSearchQuery('');
+      } else {
+        // Keep the query for highlighting in normal view
+        setSearchQuery(query);
+      }
+      return;
+    }
+
+    // Add delay before showing preview to avoid excessive API calls
+    previewTimeoutRef.current = setTimeout(async () => {
+      try {
+        setSearchQuery(query);
+
+        // Check cache first
+        const cachedMessages = conversationCache.current.get(conversationId);
+
+        if (cachedMessages) {
+          setPreviewConversationId(conversationId);
+          setPreviewMessages(cachedMessages);
+          return;
+        }
+
+        // Fetch from API
+        const res = await fetch(`/api/conversations/${conversationId}`);
+        if (res.ok) {
+          const { conversation } = await res.json();
+
+          const loadedMessages: Message[] = conversation.messages.map((msg: any) => ({
+            id: msg.id,
+            role: msg.role as Role,
+            content: msg.content,
+          }));
+
+          setPreviewConversationId(conversationId);
+          setPreviewMessages(loadedMessages);
+        }
+      } catch (error) {
+        console.error('Failed to load preview:', error);
+      }
+    }, 500); // 500ms delay to reduce API load
+  };
+
+  // Helper function to highlight search query in text
+  const highlightText = (text: string, query: string, isDarkMode: boolean) => {
+    if (!query.trim()) return text;
+
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return parts.map((part, index) => {
+      if (part.toLowerCase() === query.toLowerCase()) {
+        return (
+          <span
+            key={index}
+            className={`${
+              isDarkMode
+                ? 'bg-[#D4B483]/30 text-[#FCD34D]'
+                : 'bg-[#854D0E]/20 text-[#854D0E] font-medium'
+            } px-0.5 rounded`}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   return (
     <div className={`min-h-screen flex flex-col font-sans selection:bg-white/20 ${isDarkMode ? 'bg-[#0A0A0A] text-[#EDEDED]' : 'bg-zinc-50 text-zinc-900'}`}>
       <Header
@@ -406,37 +513,111 @@ export default function Home() {
         currentConversationId={currentConversationId}
         onConversationSelect={handleConversationSelect}
         onNewConversation={handleNewConversation}
+        onSearchPreviewHover={handleSearchPreviewHover}
         language={language}
         isDarkMode={isDarkMode}
       />
 
       <div className="flex-1 lg:ml-64">
         <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-1" style={{ height: 'calc(100vh - 7rem - 5rem)' }}>
-          <Virtuoso
-            data={messages}
-            followOutput="smooth"
-            alignToBottom={messages.length > 1}
-            itemContent={(index, msg) => (
-              <MessageBubble
-                key={msg.id}
-                message={msg}
-                isDarkMode={isDarkMode}
-                userName={profile?.name || user?.email}
-                userAvatar={profile?.avatar_url}
-                userEmail={user?.email}
-              />
-            )}
-            components={{
-              Footer: () => (
-                <div>
-                  {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' ? (
-                    <ResonanceWave isDarkMode={isDarkMode} language={language} />
-                  ) : null}
-                  <div style={{ height: '20px' }} />
-                </div>
-              ),
-            }}
-          />
+          {(previewConversationId || searchQuery) ? (
+            // Highlight mode - show preview or current conversation with search highlights
+            <div className="h-full overflow-y-auto">
+              {(previewConversationId ? previewMessages : messages).map((msg) => {
+                const isUser = msg.role === Role.USER;
+                return (
+                  <div key={msg.id} className="flex flex-col gap-2 mb-8 w-full">
+                    {/* Name label - matching MessageBubble style */}
+                    <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold font-serif ${
+                      isUser
+                        ? isDarkMode ? 'text-zinc-500' : 'text-zinc-600'
+                        : isDarkMode ? 'text-[#D4B483]' : 'text-[#854D0E]'
+                    }`}>
+                      {!isUser ? (
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 20 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className={`flex-shrink-0 ${isDarkMode ? 'opacity-80' : ''}`}
+                        >
+                          <circle cx="10" cy="10" r="8.5" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                          <circle cx="10" cy="10" r="5.5" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2.5" />
+                          <circle cx="10" cy="10" r="2.5" stroke={isDarkMode ? "#D4B483" : "#854D0E"} strokeWidth="1.5" fill="none" strokeDasharray="1.5 2" />
+                          <circle cx="10" cy="10" r="1" fill={isDarkMode ? "#D4B483" : "#854D0E"} />
+                        </svg>
+                      ) : (
+                        profile?.avatar_url ? (
+                          <img src={profile.avatar_url} alt={profile?.name || 'User'} className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
+                        ) : (
+                          <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] ${isDarkMode ? 'bg-[#1C1C1E] text-[#EDEDED]' : 'bg-zinc-200 text-zinc-700'}`}>
+                            {profile?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                          </div>
+                        )
+                      )}
+                      {isUser ? (profile?.name || user?.email || 'You') : 'Resonance'}
+                    </div>
+
+                    {/* Message content - matching MessageBubble style */}
+                    <div className={`
+                      max-w-none
+                      ml-6
+                      ${isUser
+                        ? isDarkMode
+                          ? 'text-zinc-400 font-normal'
+                          : 'text-zinc-600 font-normal'
+                        : isDarkMode
+                          ? 'text-[#C5C6C7] font-medium'
+                          : 'text-zinc-900 font-medium'
+                      }
+                    `}>
+                      <div className="whitespace-pre-wrap leading-[1.75] text-base">
+                        {highlightText(msg.content, searchQuery, isDarkMode)}
+                      </div>
+                    </div>
+
+                    {/* Divider line */}
+                    <div className={`h-px w-full mt-2 ${
+                      isDarkMode ? 'bg-[#0A0A0A]' : 'bg-white'
+                    }`} />
+                  </div>
+                );
+              })}
+              {/* Show loading animation at the end if needed */}
+              {!previewConversationId && isLoading && messages.length > 0 && messages[messages.length - 1].content === '' && (
+                <ResonanceWave isDarkMode={isDarkMode} language={language} />
+              )}
+              <div style={{ height: '20px' }} />
+            </div>
+          ) : (
+            // Normal mode - show current conversation
+            <Virtuoso
+              data={messages}
+              followOutput="smooth"
+              alignToBottom={messages.length > 1}
+              itemContent={(index, msg) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  isDarkMode={isDarkMode}
+                  userName={profile?.name || user?.email}
+                  userAvatar={profile?.avatar_url}
+                  userEmail={user?.email}
+                />
+              )}
+              components={{
+                Footer: () => (
+                  <div>
+                    {isLoading && messages.length > 0 && messages[messages.length - 1].content === '' ? (
+                      <ResonanceWave isDarkMode={isDarkMode} language={language} />
+                    ) : null}
+                    <div style={{ height: '20px' }} />
+                  </div>
+                ),
+              }}
+            />
+          )}
         </main>
 
         <InputArea onSend={handleSendMessage} onAbort={handleAbortMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
