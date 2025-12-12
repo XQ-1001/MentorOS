@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Header } from '@/components/Header';
 import { MessageBubble } from '@/components/MessageBubble';
-import { InputArea } from '@/components/InputArea';
+import { InputArea, InputAreaRef } from '@/components/InputArea';
 import { ConversationList } from '@/components/ConversationList';
 import { ResonanceWave } from '@/components/ResonanceWave';
 import { sendMessageStream, initializeChat, setConversationHistory } from '@/services/geminiService';
@@ -39,6 +39,10 @@ export default function Home() {
   const conversationCache = React.useRef<Map<string, Message[]>>(new Map());
   // AbortController for canceling ongoing requests
   const abortControllerRef = React.useRef<AbortController | null>(null);
+  // Track abort state for restoring user input
+  const abortStateRef = React.useRef<{ userMessage: string; isNewConversation: boolean; conversationId: string | null } | null>(null);
+  // Ref to InputArea for restoring user input
+  const inputAreaRef = useRef<InputAreaRef>(null);
   // Search preview state
   const [previewConversationId, setPreviewConversationId] = useState<string | null>(null);
   const [previewMessages, setPreviewMessages] = useState<Message[]>([]);
@@ -184,6 +188,13 @@ export default function Home() {
     const isFirstMessage = !currentConversationId;
     let conversationId = currentConversationId;
 
+    // Store abort state for potential restoration
+    abortStateRef.current = {
+      userMessage: text,
+      isNewConversation: isFirstMessage,
+      conversationId: null // Will be updated after conversation is created
+    };
+
     if (isFirstMessage) {
       // Generate AI-powered title based on user message
       let title = text.length > 10 ? text.substring(0, 10) : text; // Fallback
@@ -210,6 +221,11 @@ export default function Home() {
       }
 
       conversationId = await ensureConversation(title);
+
+      // Update abort state with the created conversation ID
+      if (abortStateRef.current) {
+        abortStateRef.current.conversationId = conversationId;
+      }
 
       // Update conversation language to detected language
       if (conversationId && detectedLanguage) {
@@ -295,15 +311,42 @@ export default function Home() {
     }
   };
 
-  const handleAbortMessage = () => {
+  const handleAbortMessage = async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
+
+      // Get abort state before clearing
+      const abortState = abortStateRef.current;
 
       // Remove the last two messages (user message and empty AI message)
       setMessages((prev) => prev.slice(0, -2));
 
+      // Restore user input to the input area
+      if (abortState && inputAreaRef.current) {
+        inputAreaRef.current.restoreInput(abortState.userMessage);
+      }
+
+      // If this was a new conversation, delete it
+      if (abortState?.isNewConversation && abortState.conversationId) {
+        try {
+          await fetch(`/api/conversations/${abortState.conversationId}`, {
+            method: 'DELETE',
+          });
+          console.log(`Deleted conversation ${abortState.conversationId} after abort`);
+
+          // Reset conversation ID since we deleted it
+          setCurrentConversationId(null);
+
+          // Remove from cache if present
+          conversationCache.current.delete(abortState.conversationId);
+        } catch (error) {
+          console.error('Failed to delete aborted conversation:', error);
+        }
+      }
+
       setIsLoading(false);
       abortControllerRef.current = null;
+      abortStateRef.current = null;
     }
   };
 
@@ -620,7 +663,7 @@ export default function Home() {
           )}
         </main>
 
-        <InputArea onSend={handleSendMessage} onAbort={handleAbortMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
+        <InputArea ref={inputAreaRef} onSend={handleSendMessage} onAbort={handleAbortMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
       </div>
     </div>
   );

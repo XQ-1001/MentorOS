@@ -245,10 +245,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({
     });
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const shouldStartSearching = value.trim().length > 0 && !isSearching;
+
     setSearchQuery(value);
     setIsSearching(value.trim().length > 0);
+
+    // Refresh conversation list only when starting a new search (not on every keystroke)
+    if (shouldStartSearching) {
+      await loadConversations();
+    }
   };
 
   const handleSearchClear = () => {

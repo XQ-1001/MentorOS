@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 
 interface InputAreaProps {
   onSend: (message: string) => void;
@@ -8,9 +8,27 @@ interface InputAreaProps {
   isDarkMode?: boolean;
 }
 
-export const InputArea: React.FC<InputAreaProps> = ({ onSend, onAbort, isLoading, isDarkMode = true }) => {
+export interface InputAreaRef {
+  restoreInput: (text: string) => void;
+}
+
+export const InputArea = forwardRef<InputAreaRef, InputAreaProps>(({ onSend, onAbort, isLoading, isDarkMode = true }, ref) => {
   const [input, setInput] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Expose restoreInput method to parent component
+  useImperativeHandle(ref, () => ({
+    restoreInput: (text: string) => {
+      setInput(text);
+      // Focus and adjust height after state update
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          adjustHeight();
+        }
+      }, 0);
+    }
+  }));
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -99,4 +117,6 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, onAbort, isLoading
       </div>
     </div>
   );
-};
+});
+
+InputArea.displayName = 'InputArea';
