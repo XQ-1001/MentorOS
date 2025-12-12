@@ -366,7 +366,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   ? 'bg-[#1C1C1E] border-[#2C2C2E] focus-within:border-[#D4B483]/50'
                   : 'bg-white border-zinc-300 focus-within:border-[#854D0E]/50'
               }`}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" className={isDarkMode ? 'text-zinc-500' : 'text-zinc-400'}>
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>

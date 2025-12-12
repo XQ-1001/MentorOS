@@ -216,7 +216,6 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({
                   display: table;
                   width: 100%;
                   margin-bottom: 20px;
-                  page-break-inside: avoid;
                 }
                 .speaker {
                   display: table-cell;
