@@ -33,8 +33,25 @@ export const InputArea = forwardRef<InputAreaRef, InputAreaProps>(({ onSend, onA
   const adjustHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 150)}px`;
+      // Check if desktop (lg breakpoint)
+      const isDesktop = window.innerWidth >= 1024;
+
+      if (isDesktop) {
+        // Desktop: normal auto-resize
+        textarea.style.height = 'auto';
+        const newHeight = Math.min(textarea.scrollHeight, 150);
+        textarea.style.height = `${newHeight}px`;
+      } else {
+        // Mobile: fixed 32px for single line, expand for multiple lines
+        textarea.style.height = '32px';
+        if (textarea.scrollHeight > 32) {
+          textarea.style.lineHeight = '1.4';
+          const newHeight = Math.min(textarea.scrollHeight, 150);
+          textarea.style.height = `${newHeight}px`;
+        } else {
+          textarea.style.lineHeight = '32px';
+        }
+      }
     }
   };
 
@@ -60,7 +77,7 @@ export const InputArea = forwardRef<InputAreaRef, InputAreaProps>(({ onSend, onA
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg pt-4 pb-2 transition-all duration-300 lg:left-64 ${isDarkMode ? 'bg-[#0A0A0A]/90' : 'bg-zinc-50/90'}`}>
+    <div className={`fixed bottom-0 left-0 right-0 backdrop-blur-lg py-1.5 lg:pt-4 lg:pb-2 transition-all duration-300 lg:left-64 ${isDarkMode ? 'bg-[#0A0A0A]/90' : 'bg-zinc-50/90'}`}>
       <style>{`
         @keyframes placeholderPulse {
           0%, 100% { opacity: 0.4; }
@@ -76,21 +93,21 @@ export const InputArea = forwardRef<InputAreaRef, InputAreaProps>(({ onSend, onA
         }
       `}</style>
       <div className="max-w-5xl mx-auto px-4 relative">
-        <div className={`relative flex items-end gap-2 border rounded-3xl p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#D4B483]/70 focus-within:ring-[#D4B483]/70' : 'bg-zinc-100 border-[#854D0E]/70 focus-within:ring-[#854D0E]/70'}`}>
+        <div className={`relative flex items-end gap-1.5 lg:gap-2 border rounded-3xl p-1.5 lg:p-2 focus-within:ring-1 transition-all duration-300 ${isDarkMode ? 'bg-[#1C1C1E]/50 border-[#D4B483]/70 focus-within:ring-[#D4B483]/70' : 'bg-zinc-100 border-[#854D0E]/70 focus-within:ring-[#854D0E]/70'}`}>
             <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Awaiting your signal..."
-                className={`w-full bg-transparent resize-none outline-none py-3 px-4 max-h-[150px] min-h-[52px] leading-[1.75] ${isDarkMode ? 'text-[#C5C6C7] input-with-pulse-dark' : 'text-zinc-900 input-with-pulse-light'}`}
+                className={`w-full bg-transparent resize-none outline-none py-0 lg:py-3 px-3 lg:px-4 max-h-[150px] h-[32px] lg:min-h-[52px] leading-[32px] lg:leading-[1.75] text-sm lg:text-base ${isDarkMode ? 'text-[#C5C6C7] input-with-pulse-dark' : 'text-zinc-900 input-with-pulse-light'}`}
                 rows={1}
                 disabled={isLoading}
             />
             <button
                 onClick={isLoading ? onAbort : handleSubmit}
                 disabled={!isLoading && !input.trim()}
-                className={`mb-1.5 mr-1.5 p-2 rounded-full transition-all duration-200 flex-shrink-0 ${
+                className={`mb-0.5 lg:mb-1.5 mr-0.5 lg:mr-1.5 p-1.5 lg:p-2 rounded-full transition-all duration-200 flex-shrink-0 ${
                     isLoading
                         ? isDarkMode ? 'bg-[#D4B483] text-[#0A0A0A] hover:bg-[#FCD34D]' : 'bg-[#854D0E] text-white hover:bg-[#B45309]'
                         : !input.trim()
@@ -111,7 +128,8 @@ export const InputArea = forwardRef<InputAreaRef, InputAreaProps>(({ onSend, onA
                 )}
             </button>
         </div>
-        <p className="text-center text-xs uppercase tracking-[0.2em] mt-8 mb-1 transition-colors" style={{ color: 'rgba(113, 113, 122, 0.5)' }}>
+        {/* Hide decorative text on mobile, show only on desktop */}
+        <p className="hidden lg:block text-center text-xs uppercase tracking-[0.2em] mt-8 mb-1 transition-colors" style={{ color: 'rgba(113, 113, 122, 0.5)' }}>
             RESONANCE LAB // MODEL: VISIONARY // V1.0
         </p>
       </div>

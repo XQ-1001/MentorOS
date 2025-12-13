@@ -562,7 +562,7 @@ export default function Home() {
       />
 
       <div className="flex-1 lg:ml-64">
-        <main className="w-full max-w-5xl mx-auto px-4 pt-28 pb-1" style={{ height: 'calc(100vh - 7rem - 5rem)' }}>
+        <main className="w-full max-w-5xl mx-auto px-3 lg:px-4 pt-14 lg:pt-24 pb-0 h-[calc(100vh-3rem-2.75rem)] lg:h-[calc(100vh-5rem-7rem)]">
           {(previewConversationId || searchQuery) ? (
             // Highlight mode - show preview or current conversation with search highlights
             <div className="h-full overflow-y-auto">
@@ -663,7 +663,13 @@ export default function Home() {
           )}
         </main>
 
-        <InputArea ref={inputAreaRef} onSend={handleSendMessage} onAbort={handleAbortMessage} isLoading={isLoading} isDarkMode={isDarkMode} />
+        <InputArea
+          ref={inputAreaRef}
+          onSend={handleSendMessage}
+          onAbort={handleAbortMessage}
+          isLoading={isLoading}
+          isDarkMode={isDarkMode}
+        />
       </div>
     </div>
   );

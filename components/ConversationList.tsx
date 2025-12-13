@@ -305,17 +305,17 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
   return (
     <>
-      {/* Mobile Toggle Button */}
+      {/* Mobile Toggle Button - Small and left-aligned */}
       <button
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className={`fixed top-20 left-4 z-50 md:hidden p-2 rounded-lg border transition-colors ${
+        className={`fixed top-14 left-0 z-50 lg:hidden p-1 rounded-r-md border-r border-t border-b transition-colors ${
           isDarkMode
-            ? 'bg-[#1C1C1E] border-[#2C2C2E] text-[#EDEDED] hover:bg-[#2C2C2E]'
-            : 'bg-white border-zinc-300 text-zinc-700 hover:bg-zinc-100'
+            ? 'bg-[#1C1C1E]/80 border-[#2C2C2E] text-zinc-500 hover:bg-[#2C2C2E] hover:text-[#EDEDED]'
+            : 'bg-white/80 border-zinc-300 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700'
         }`}
         aria-label="Toggle sidebar"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="3" y1="12" x2="21" y2="12"></line>
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="3" y1="18" x2="21" y2="18"></line>
@@ -324,7 +324,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed top-20 left-0 bottom-0 w-64 border-r transition-all duration-300 z-40 ${
+        className={`fixed top-12 lg:top-20 left-0 bottom-0 w-64 border-r transition-all duration-300 z-40 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${isDarkMode ? 'bg-[#0A0A0A] border-[#2C2C2E]' : 'bg-zinc-50 border-zinc-200'}`}
       >

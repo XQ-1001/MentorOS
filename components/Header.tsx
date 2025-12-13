@@ -22,8 +22,6 @@ export const Header: React.FC<HeaderProps> = ({
   const supabase = createClient();
   const [user, setUser] = useState<User | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Use custom hook to manage profile data
   const { profile } = useProfile(user);
@@ -45,38 +43,9 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, [supabase]);
 
-  // Auto-hide header on scroll (mobile only)
-  useEffect(() => {
-    const handleScroll = () => {
-      // Only apply on mobile (screens smaller than lg breakpoint)
-      if (window.innerWidth >= 1024) {
-        setIsVisible(true);
-        return;
-      }
-
-      const currentScrollY = window.scrollY;
-
-      if (currentScrollY < 10) {
-        // Near top - always show
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 80) {
-        // Scrolling down - hide
-        setIsVisible(false);
-      } else if (currentScrollY < lastScrollY) {
-        // Scrolling up - show
-        setIsVisible(true);
-      }
-
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-20 flex items-center justify-between px-2 md:px-3 transition-all duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'} ${!isVisible ? 'lg:translate-y-0 -translate-y-full' : 'translate-y-0'}`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b h-12 lg:h-20 flex items-center justify-between px-2 md:px-3 transition-all duration-300 ${isDarkMode ? 'bg-[#0A0A0A]/90 border-[#2C2C2E]' : 'bg-zinc-50/90 border-zinc-200'}`}>
         {/* App Title - Left */}
         <div className="flex items-center gap-2">
             {/* Dotted concentric circles icon - static */}
