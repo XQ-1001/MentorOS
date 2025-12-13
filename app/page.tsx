@@ -569,7 +569,7 @@ export default function Home() {
               {(previewConversationId ? previewMessages : messages).map((msg) => {
                 const isUser = msg.role === Role.USER;
                 return (
-                  <div key={msg.id} className="flex flex-col gap-2 mb-8 w-full">
+                  <div key={msg.id} className="flex flex-col gap-2 mb-4 md:mb-6 w-full">
                     {/* Name label - matching MessageBubble style */}
                     <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold font-serif ${
                       isUser
@@ -615,7 +615,7 @@ export default function Home() {
                           : 'text-zinc-900 font-medium'
                       }
                     `}>
-                      <div className="whitespace-pre-wrap leading-[1.75] text-base">
+                      <div className="whitespace-pre-wrap leading-[1.5] md:leading-[1.65] text-base">
                         {highlightText(msg.content, searchQuery, isDarkMode)}
                       </div>
                     </div>

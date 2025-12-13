@@ -30,7 +30,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
       </strong>
     ),
     p: ({ children, ...props }: any) => (
-      <p {...props} className="my-3 leading-[1.75] last:mb-0">
+      <p {...props} className="my-1.5 md:my-2 leading-[1.5] md:leading-[1.65] last:mb-0">
         {children}
       </p>
     ),
@@ -72,7 +72,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
   };
 
   return (
-    <div className="flex flex-col gap-2 mb-8 w-full">
+    <div className="flex flex-col gap-2 mb-4 md:mb-6 w-full">
       {/* Name label - script style */}
       <div className={`flex items-center gap-2 text-base uppercase tracking-wider font-semibold font-serif ${
         isUser
@@ -174,7 +174,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, isDarkMod
         }
       `}>
         {isUser ? (
-          <p className="whitespace-pre-wrap leading-[1.75] text-base">{message.content}</p>
+          <p className="whitespace-pre-wrap leading-[1.5] md:leading-[1.65] text-base">{message.content}</p>
         ) : (
           <div className={`text-base max-w-none ${
             isDarkMode
